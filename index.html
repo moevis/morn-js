@@ -4,8 +4,20 @@
 		<link rel="stylesheet" type="text/css" href="dist/morn.css">
 		<script type="text/javascript" src="dist/morn.js"></script>
 		<script type="text/javascript">
+		morn.ready(function() {
+			morn.widget.resize(morn.id('area'));
+		});
 		</script>
+		<style type="text/css">
+			#area{
+				border: 1px solid #aaa;
+				background-color: #eee;
+			}
+		</style>
 	</head>
 	<body>
+		<div id='area'>
+			example text
+		</div>
 	</body>
 </html>
