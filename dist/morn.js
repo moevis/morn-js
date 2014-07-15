@@ -1,7 +1,9 @@
-/*! morn-js - v0.0.1 - 2014-07-14 */
+/*! morn-js - v0.0.1 - 2014-07-15 */
+'use strict';
+
 var morn = (function(){
 
-	$ = {};
+	var $ = {};
 	
 	// get element
 	$.id = function(id, scope) {
@@ -92,15 +94,31 @@ var morn = (function(){
 	$.addEventHandler = (function () {
 		if (window.addEventListener) {
 			return function (el, ev, fn) {
-				el.addEventListener(ev, fn, false);
+				if (el.length) {
+					for (var i = el.length - 1; i >= 0; i--) {
+						el[i].addEventListener(ev, fn, false);
+					}
+				} else {
+					el.addEventListener(ev, fn, false);
+				}
             };
         } else if (window.attachEvent) {
             return function (el, ev, fn) {
-				el.attachEvent('on' + ev, fn);
+            	if (el.length) {
+
+				} else {
+					el.attachEvent('on' + ev, fn);
+				}
 			};
         } else {
             return function (el, ev, fn) {
-				el['on' + ev] =  fn;
+            	if (el.length) {
+					for (var i = el.length - 1; i >= 0; i--) {
+						el[i]['on' + ev] =  fn;
+					}
+            	} else {
+					el['on' + ev] =  fn;
+            	}
 			};
 		}
 	}());
@@ -115,7 +133,7 @@ var morn = (function(){
 				el.dettachEvent('on' + ev, fn);
 			};
         } else {
-            return function (el, ev, fn) {
+            return function (el, ev) {
 				el['on' + ev] =  null;
 			};
 		}
@@ -163,6 +181,31 @@ var morn = (function(){
 		}
 	};
 
+	$.createDom = function(str){
+		var tmpNodes = [],
+			tmp = document.createElement('div'),
+			node;
+		tmp.innerHTML = str;
+		for (var i = 0, len = tmp.children.length; i < len; i++) {
+			tmpNodes.push(tmp.children[i]);
+		};
+		// tmp.children
+		// while(node = tmp.firstChild){
+		// 	tmpNodes.push(node);
+		// }
+		return tmpNodes;
+	};
+
+	$.append = function(element, children) {
+		if (children.length) {
+			for (var i = children.length - 1; i >= 0; i--) {
+				element.appendChild(children[i]);
+			}
+		} else {
+			element.appendChild(children);
+		}
+	}
+
 	$.widget = {};
 
 	return $;
@@ -170,14 +213,48 @@ var morn = (function(){
 'use strict';
 
 (function($) {
+	/*
+		opt.maxHeight
+		opt.minHeight
+		opt.maxWidth
+		opt.minWidth
+		opt.border = [true, true, true, true]
+		opt.corner = [true, true, true, true]
+	*/
 	$.widget.resize = function (element, opt) {
-		$.addEventHandler(element, 'mousedown', function(e){
+		var options       = opt || {};
+		options.maxHeight = options.maxHeight || null;
+		options.minHeight = options.minHeight || null;
+		options.maxWidth  = options.maxWidth || null;
+		options.minWidth  = options.minWidth || null;
+		options.direction = options.direction || 'all';
+		options.border    = options.border || [true, true, true, true];
+		options.corner    = options.corner || [true, true, true, true];
+
+		$.addClass(element, 'morn-resizable');
+
+		if (options.border[0]) {
+			addResizeBorderN(element);
+		}
+		if (options.border[1]) {
+			addResizeBorderS(element);
+		}
+		if (options.border[2]) {
+			addResizeBorderW(element);
+		}
+		if (options.border[3]) {
+			addResizeBorderE(element);
+		}
+	};
+
+	function addResizeButton (element, controller) {
+		$.addEventHandler(resizer, 'mousedown', function(e){
 			var startX = e.clientX,
 				startY = e.clientY,
 				startWidth = parseInt($.getComputedStyle(element, 'width'),10),
 				startHeight = parseInt($.getComputedStyle(element, 'height'),10),
 				drag = function(e) {
-					element.style.width = (startWidth + e.clientX - startX) + 'px';
+					element.style.width  = (startWidth + e.clientX - startX) + 'px';
 					element.style.height = (startHeight + e.clientY - startY) + 'px';
 				},
 				release = function() {
@@ -188,5 +265,87 @@ var morn = (function(){
 			$.addEventHandler(document.documentElement, 'mouseup', release);
 			$.addEventHandler(document.documentElement, 'mousemove', drag);
 		});
-	};
+	}
+
+	function addResizeBorderN (element) {
+		var controller = $.createDom('<div class=\'morn-resizable-border-n\'/>');
+		$.append(element, controller);
+		$.addEventHandler(controller, 'mousedown', function(e){
+			var startY = e.clientY,
+				startTop = parseInt($.getComputedStyle(element, 'top'),10),
+				drag = function(e) {
+					element.style.top = (startTop - e.clientY + startY) + 'px';
+				},
+				release = function() {
+					$.removeEventHandler(document.documentElement, 'mouseup', release);
+					$.removeEventHandler(document.documentElement, 'mousemove', drag);
+				};
+
+			$.addEventHandler(document.documentElement, 'mouseup', release);
+			$.addEventHandler(document.documentElement, 'mousemove', drag);
+		});
+	}
+
+	function addResizeBorderS (element) {
+		var controller = $.createDom('<div class=\'morn-resizable-border-s\'/>');
+		$.append(element, controller);
+		$.addEventHandler(controller, 'mousedown', function(e){
+			var startY = e.clientY,
+				startHeight = parseInt($.getComputedStyle(element, 'height'),10),
+				drag = function(e) {
+					element.style.height = (startHeight + e.clientY - startY) + 'px';
+				},
+				release = function() {
+					$.removeEventHandler(document.documentElement, 'mouseup', release);
+					$.removeEventHandler(document.documentElement, 'mousemove', drag);
+				};
+
+			$.addEventHandler(document.documentElement, 'mouseup', release);
+			$.addEventHandler(document.documentElement, 'mousemove', drag);
+		});
+	}
+
+	function addResizeBorderE (element) {
+		var controller = $.createDom('<div class=\'morn-resizable-border-e\'/>');
+		$.append(element, controller);
+		$.addEventHandler(controller, 'mousedown', function(e){
+			var startX = e.clientX,
+				startWidth = parseInt($.getComputedStyle(element, 'width'),10),
+				drag = function(e) {
+					element.style.width  = (startWidth + e.clientX - startX) + 'px';
+				},
+				release = function() {
+					$.removeEventHandler(document.documentElement, 'mouseup', release);
+					$.removeEventHandler(document.documentElement, 'mousemove', drag);
+				};
+
+			$.addEventHandler(document.documentElement, 'mouseup', release);
+			$.addEventHandler(document.documentElement, 'mousemove', drag);
+		});
+	}
+
+	function addResizeBorderW (element) {
+		var controller = $.createDom('<div class=\'morn-resizable-border-w\'/>');
+		$.append(element, controller);
+		$.addEventHandler(controller, 'mousedown', function(e){
+			var startX = e.clientX,
+				startLeft = parseInt($.getComputedStyle(element, 'left'),10),
+				drag = function(e) {
+					element.style.left  = (startLeft + e.clientX - startX) + 'px';
+					element.style.width = parseInt(element.style.width, 10) - (e.clientX - startX) + 'px';
+					console.log(e.clientX - startX);
+				},
+				release = function() {
+					$.removeEventHandler(document.documentElement, 'mouseup', release);
+					$.removeEventHandler(document.documentElement, 'mousemove', drag);
+				};
+
+			$.addEventHandler(document.documentElement, 'mouseup', release);
+			$.addEventHandler(document.documentElement, 'mousemove', drag);
+		});
+	}
+
+	$.widget.resizeController = function(element, controller, opt) {
+		// body...
+	}
 }(morn));
