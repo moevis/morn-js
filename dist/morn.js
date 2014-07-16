@@ -149,7 +149,7 @@ var morn = (function(){
 						this.dom[i]['on' + ev] =  fn;
 					}
             	} else {
-					this.dom['on' + ev] =  fn;
+					this.dom['on' + ev] = fn;
             	}
 				return this;
 			};
@@ -184,7 +184,7 @@ var morn = (function(){
 						el[i]['on' + ev] =  fn;
 					}
             	} else {
-					el['on' + ev] =  fn;
+					el['on' + ev] = fn;
             	}
 			};
 		}
@@ -193,17 +193,36 @@ var morn = (function(){
 	mornjs.prototype.removeEventHandler = (function () {
 		if (window.removeEventListener) {
 			return function (ev, fn) {
-				this.dom.removeEventListener(ev, fn);
+				if (this.dom.length) {
+					for (var i = this.dom.length - 1; i >= 0; i--) {
+						this.dom[i].removeEventListener(ev, fn);
+					}
+				} else {
+					this.dom.removeEventListener(ev, fn);
+				}
 				return this;
             };
         } else if (window.detachEvent) {
             return function (ev, fn) {
-				this.dom.detachEvent('on' + ev, fn);
+				if (this.dom.length) {
+					for (var i = this.dom.length - 1; i >= 0; i--) {
+						this.dom[i].detachEvent('on' + ev, fn);
+					}
+				} else {
+					this.dom.detachEvent('on' + ev, fn);
+				}
 				return this;
 			};
         } else {
             return function (ev) {
-				this.dom['on' + ev] =  null;
+            	if (this.dom.length) {
+					for (var i = this.dom.length - 1; i >= 0; i--) {
+						this.dom[i]['on' + ev] = null;
+					}
+            	} else {
+					this.dom['on' + ev] = null;
+            	}
+				
 				return this;
 			};
 		}
@@ -220,7 +239,13 @@ var morn = (function(){
 			};
         } else {
             return function (el, ev) {
-				el['on' + ev] =  null;
+            	if (el.length) {
+					for (var i = el.length - 1; i >= 0; i--) {
+						el[i]['on' + ev] = null;
+					}
+            	} else {
+					el['on' + ev] = null;
+            	}
 			};
 		}
 	}());
@@ -228,14 +253,29 @@ var morn = (function(){
 	mornjs.prototype.addClass = (function () {
 		if (document.documentElement.classList) {
 			return function (classStyle) {
-				this.dom.classList.add(classStyle);
+				if (this.dom.length) {
+					for (var i = this.dom.length - 1; i >= 0; i--) {
+						this.dom[i].classList.add(classStyle);
+					}
+				} else {
+					this.dom.classList.add(classStyle);
+				}
 				return this;
 			};
 		}else{
 			return function (classStyle) {
-				var c = ' ' + this.dom.className + ' ';
-				if (c.indexOf(' ' + classStyle + ' ') == -1) {
-					this.dom.className += ' ' + classStyle;
+				if (this.dom.length) {
+					for (var i = this.dom.length - 1; i >= 0; i--) {
+						var c = ' ' + this.dom.className + ' ';
+						if (c.indexOf(' ' + classStyle + ' ') == -1) {
+							this.dom.className += ' ' + classStyle;
+						}
+					}
+				} else {
+					var c = ' ' + this.dom.className + ' ';
+					if (c.indexOf(' ' + classStyle + ' ') == -1) {
+						this.dom.className += ' ' + classStyle;
+					}
 				}
 				return this;
 			};
@@ -245,13 +285,28 @@ var morn = (function(){
 	mornjs.addClass = (function () {
 		if (document.documentElement.classList) {
 			return function (el, classStyle) {
-				el.classList.add(classStyle);
+				if (el.length) {
+					for (var i = el.length - 1; i >= 0; i--) {
+						el[i].classList.add(classStyle);
+					}
+				} else {
+					el.classList.add(classStyle);
+				}
 			};
 		}else{
 			return function (el, classStyle) {
-				var c = ' ' + el.className + ' ';
-				if (c.indexOf(' ' + classStyle + ' ') == -1) {
-					el.className += ' ' + classStyle;
+				if (el.length) {
+					for (var i = el.length - 1; i >= 0; i--) {
+						var c = ' ' + el.className + ' ';
+						if (c.indexOf(' ' + classStyle + ' ') == -1) {
+							el.className += ' ' + classStyle;
+						}
+					}
+				} else {
+					var c = ' ' + el.className + ' ';
+					if (c.indexOf(' ' + classStyle + ' ') == -1) {
+						el.className += ' ' + classStyle;
+					}
 				}
 			};
 		}
@@ -260,12 +315,24 @@ var morn = (function(){
 	mornjs.prototype.removeClass = (function () {
 		if (document.documentElement.classList) {
 			return function (classStyle) {
-				this.dom.classList.remove(classStyle);
+				if (this.dom.length) {
+					for (var i = this.dom.length - 1; i >= 0; i--) {
+						this.dom[i].classList.remove(classStyle);
+					}
+				} else {
+					this.dom.classList.remove(classStyle);
+				}
 				return this;
 			};
 		}else{
 			return function (classStyle) {
-				this.dom.className = this.dom.className.replace('/\\b' + classStyle + '\\b/g', '');
+				if (this.dom.length) {
+					for (var i = this.dom.length - 1; i >= 0; i--) {
+						this.dom[i].this.dom.className = this.dom.className.replace('/\\b' + classStyle + '\\b/g', '');
+					}
+				} else {
+					this.dom.className = this.dom.className.replace('/\\b' + classStyle + '\\b/g', '');
+				}
 				return this;
 			};
 		}
@@ -274,11 +341,23 @@ var morn = (function(){
 	mornjs.removeClass = (function () {
 		if (document.documentElement.classList) {
 			return function (el, classStyle) {
-				el.classList.remove(classStyle);
+				if (el.length) {
+					for (var i = el.length - 1; i >= 0; i--) {
+						el[i].classList.remove(classStyle);
+					}
+				} else {
+					el.classList.remove(classStyle);
+				}
 			};
 		}else{
 			return function (el, classStyle) {
-				el.className = el.className.replace('/\\b' + classStyle + '\\b/g', '');
+				if (el.length) {
+					for (var i = el.length - 1; i >= 0; i--) {
+						el[i].el.className = el.className.replace('/\\b' + classStyle + '\\b/g', '');
+					}
+				} else {
+					el.className = el.className.replace('/\\b' + classStyle + '\\b/g', '');
+				}
 			};
 		}
 	}());
@@ -325,8 +404,8 @@ var morn = (function(){
 		}
 	}
 
-	mornjs.prototype.height = function(width) {
-		if (width === undefined) {
+	mornjs.prototype.height = function(height) {
+		if (height === undefined) {
 			var rect;
 			if (this.dom.length !== undefined && this.dom.length !== 0) {
 				rect = this.dom[0].getBoundingClientRect();
@@ -337,8 +416,8 @@ var morn = (function(){
 		}
 	}
 
-	mornjs.prototype.rect = function(width) {
-		if (width === undefined) {
+	mornjs.prototype.rect = function() {
+		// if (width === undefined) {
 			var rect;
 			if (this.dom.length !== undefined && this.dom.length !== 0) {
 				rect = this.dom[0].getBoundingClientRect();
@@ -346,7 +425,7 @@ var morn = (function(){
 				rect = this.dom.getBoundingClientRect();
 			}
 			return rect;
-		}
+		// }
 	}
 
 	mornjs.createDom = function(str){
@@ -360,12 +439,23 @@ var morn = (function(){
 	};
 
 	mornjs.prototype.append = function(children) {
+		var dom;
+		if (this.dom.length) {
+			dom = this.dom[0];
+		} else {
+			dom = this.dom;
+		}
+
+		if (dom === undefined) {
+			return this;
+		}
+
 		if (children.length) {
 			for (var i = children.length - 1; i >= 0; i--) {
-				this.dom.element.appendChild(children[i]);
+				dom.element.appendChild(children[i]);
 			}
 		} else {
-			this.dom.appendChild(children);
+			dom.appendChild(children);
 		}
 		return this;
 	};
@@ -379,6 +469,29 @@ var morn = (function(){
 			element.appendChild(children);
 		}
 	}
+
+	mornjs.prototype.prepend = function(children) {
+		var dom;
+		if (this.dom.length) {
+			dom = this.dom[0];
+		} else {
+			dom = this.dom;
+		}
+
+		if (dom === undefined) {
+			return this;
+		}
+
+		if (children.length) {
+			for (var i = children.length - 1; i >= 0; i--) {
+				dom.insertBefore(children[i], dom.firstChild);
+			}
+		} else {
+			dom.insertBefore(children, dom.firstChild);
+		}
+
+		return this;
+	};
 
 	mornjs.widget = {};
 
@@ -507,7 +620,7 @@ var morn = (function(){
 
 	function addResizeBorderN (element) {
 		var controller = $.createDom('<div class=\'morn-resizable-border-n\'/>');
-		$.append(element, controller);
+		$(element).prepend(controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startY      = e.clientY,
 				startTop    = Math.max(parseInt($(element).rect().top, 0), 10),
@@ -518,8 +631,9 @@ var morn = (function(){
 				},
 				release     = function() {
 					$(document.documentElement).removeEventHandler('mouseup', release).removeEventHandler('mousemove', drag);
+					$(element).removeClass('morn-resizable-resizing');
 				};
-
+			$(element).addClass('morn-resizable-resizing');
 			$(document.documentElement).addEventHandler('mouseup', release).addEventHandler('mousemove', drag);
 		});
 	}
@@ -535,8 +649,9 @@ var morn = (function(){
 				},
 				release     = function() {
 					$(document.documentElement).removeEventHandler('mouseup', release).removeEventHandler('mousemove', drag);
+					$(element).removeClass('morn-resizable-resizing');
 				};
-
+			$(element).addClass('morn-resizable-resizing');
 			$(document.documentElement).addEventHandler('mouseup', release).addEventHandler('mousemove', drag);
 		});
 	}
@@ -552,15 +667,16 @@ var morn = (function(){
 				},
 				release    = function() {
 					$(document.documentElement).removeEventHandler('mouseup', release).removeEventHandler('mousemove', drag);
+					$(element).removeClass('morn-resizable-resizing');
 				};
-
+			$(element).addClass('morn-resizable-resizing');
 			$(document.documentElement).addEventHandler('mouseup', release).addEventHandler('mousemove', drag);
 		});
 	}
 
 	function addResizeBorderW (element) {
 		var controller = $.createDom('<div class=\'morn-resizable-border-w\'/>');
-		$.append(element, controller);
+		$(element).prepend(controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startX     = e.clientX,
 				startWidth = parseInt($(element).width(), 10),
@@ -571,8 +687,9 @@ var morn = (function(){
 				},
 				release = function() {
 					$(document.documentElement).removeEventHandler('mouseup', release).removeEventHandler('mousemove', drag);
+					$(element).removeClass('morn-resizable-resizing');
 				};
-
+			$(element).addClass('morn-resizable-resizing');
 			$(document.documentElement).addEventHandler('mouseup', release).addEventHandler('mousemove', drag);
 		});
 	}

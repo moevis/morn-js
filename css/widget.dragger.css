@@ -7,6 +7,15 @@
 	position: relative;
 }
 
+.morn-resizable-resizing {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
 .morn-resizable-border-n {
 	position: absolute;
 	z-index: 1000;
