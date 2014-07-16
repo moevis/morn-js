@@ -119,7 +119,7 @@ var morn = (function(){
 		}
 	};
 
-	mornjs.event.prototype.addEventHandler = (function () {
+	mornjs.prototype.addEventHandler = (function () {
 		if (window.addEventListener) {
 			return function (ev, fn) {
 				if (this.dom.length) {
@@ -129,6 +129,7 @@ var morn = (function(){
 				} else {
 					this.dom.addEventListener(ev, fn, false);
 				}
+				return this;
             };
         } else if (window.attachEvent) {
             return function (ev, fn) {
@@ -139,6 +140,7 @@ var morn = (function(){
 				} else {
 					this.dom.attachEvent('on' + ev, fn);
 				}
+				return this;
 			};
         } else {
             return function (ev, fn) {
@@ -149,6 +151,7 @@ var morn = (function(){
             	} else {
 					this.dom['on' + ev] =  fn;
             	}
+				return this;
 			};
 		}
 	}());
@@ -191,14 +194,17 @@ var morn = (function(){
 		if (window.removeEventListener) {
 			return function (ev, fn) {
 				this.dom.removeEventListener(ev, fn);
+				return this;
             };
         } else if (window.detachEvent) {
             return function (ev, fn) {
 				this.dom.detachEvent('on' + ev, fn);
+				return this;
 			};
         } else {
             return function (ev) {
 				this.dom['on' + ev] =  null;
+				return this;
 			};
 		}
 	}());
@@ -223,6 +229,7 @@ var morn = (function(){
 		if (document.documentElement.classList) {
 			return function (classStyle) {
 				this.dom.classList.add(classStyle);
+				return this;
 			};
 		}else{
 			return function (classStyle) {
@@ -230,6 +237,7 @@ var morn = (function(){
 				if (c.indexOf(' ' + classStyle + ' ') == -1) {
 					this.dom.className += ' ' + classStyle;
 				}
+				return this;
 			};
 		}
 	}());
@@ -253,10 +261,12 @@ var morn = (function(){
 		if (document.documentElement.classList) {
 			return function (classStyle) {
 				this.dom.classList.remove(classStyle);
+				return this;
 			};
 		}else{
 			return function (classStyle) {
 				this.dom.className = this.dom.className.replace('/\\b' + classStyle + '\\b/g', '');
+				return this;
 			};
 		}
 	}());
@@ -303,6 +313,42 @@ var morn = (function(){
 		}
 	};
 
+	mornjs.prototype.width = function(width) {
+		if (width === undefined) {
+			var rect;
+			if (this.dom.length !== undefined && this.dom.length !== 0) {
+				rect = this.dom[0].getBoundingClientRect();
+			} else {
+				rect = this.dom.getBoundingClientRect();
+			}
+			return rect.right - rect.left;
+		}
+	}
+
+	mornjs.prototype.height = function(width) {
+		if (width === undefined) {
+			var rect;
+			if (this.dom.length !== undefined && this.dom.length !== 0) {
+				rect = this.dom[0].getBoundingClientRect();
+			} else {
+				rect = this.dom.getBoundingClientRect();
+			}
+			return rect.bottom - rect.top;
+		}
+	}
+
+	mornjs.prototype.rect = function(width) {
+		if (width === undefined) {
+			var rect;
+			if (this.dom.length !== undefined && this.dom.length !== 0) {
+				rect = this.dom[0].getBoundingClientRect();
+			} else {
+				rect = this.dom.getBoundingClientRect();
+			}
+			return rect;
+		}
+	}
+
 	mornjs.createDom = function(str){
 		var tmpNodes = [],
 			tmp = document.createElement('div');
@@ -310,10 +356,6 @@ var morn = (function(){
 		for (var i = 0, len = tmp.children.length; i < len; i++) {
 			tmpNodes.push(tmp.children[i]);
 		}
-		// tmp.children
-		// while(node = tmp.firstChild){
-		// 	tmpNodes.push(node);
-		// }
 		return tmpNodes;
 	};
 
@@ -325,6 +367,7 @@ var morn = (function(){
 		} else {
 			this.dom.appendChild(children);
 		}
+		return this;
 	};
 
 	mornjs.append = function(element, children) {
@@ -448,22 +491,17 @@ var morn = (function(){
 		$.addEventHandler(resizer, 'mousedown', function(e){
 			var startX      = e.clientX,
 				startY      = e.clientY,
-				startWidth  = parseInt($(element).getComputedStyle('width'),10),
-				startHeight = parseInt($(element).getComputedStyle('height'),10),
+				startWidth  = parseInt($(element).width(),10),
+				startHeight = parseInt($(element).height(),10),
 				drag        = function(e) {
-					if ($.event(e).which === -1) {
-						release();
-					}
 					element.style.width  = (startWidth + e.clientX - startX) + 'px';
 					element.style.height = (startHeight + e.clientY - startY) + 'px';
 				},
 				release     = function() {
-					$.removeEventHandler(document.documentElement, 'mouseup', release);
-					$.removeEventHandler(document.documentElement, 'mousemove', drag);
+					$(document.documentElement).removeEventHandler('mouseup', release).removeEventHandler('mousemove', drag);
 				};
 
-			$.addEventHandler(document.documentElement, 'mouseup', release);
-			$.addEventHandler(document.documentElement, 'mousemove', drag);
+			$(document.documentElement).addEventHandler('mouseup', release).addEventHandler('mousemove', drag);
 		});
 	}
 
@@ -472,22 +510,17 @@ var morn = (function(){
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startY      = e.clientY,
-				startTop    = Math.max(parseInt($(element).getComputedStyle('top'), 0), 10),
-				startHeight = Math.max(parseInt($(element).getComputedStyle('height'), 0), 10),
+				startTop    = Math.max(parseInt($(element).rect().top, 0), 10),
+				startHeight = Math.max(parseInt($(element).height(), 0), 10),
 				drag        = function(e) {
-					if ($.event(e).which === -1) {
-						release();
-					}
 					element.style.top = (startTop + e.clientY - startY) + 'px';
 					element.style.height = Math.max((startHeight - e.clientY + startY), 0) + 'px';
 				},
 				release     = function() {
-					$.removeEventHandler(document.documentElement, 'mouseup', release);
-					$.removeEventHandler(document.documentElement, 'mousemove', drag);
+					$(document.documentElement).removeEventHandler('mouseup', release).removeEventHandler('mousemove', drag);
 				};
 
-			$.addEventHandler(document.documentElement, 'mouseup', release);
-			$.addEventHandler(document.documentElement, 'mousemove', drag);
+			$(document.documentElement).addEventHandler('mouseup', release).addEventHandler('mousemove', drag);
 		});
 	}
 
@@ -496,20 +529,15 @@ var morn = (function(){
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startY      = e.clientY,
-				startHeight = parseInt($(element).getComputedStyle('height'), 10),
+				startHeight = parseInt($(element).height(), 10),
 				drag        = function(e) {
 					element.style.height = Math.max((startHeight + e.clientY - startY), 0) + 'px';
 				},
 				release     = function() {
-					if ($.event(e).which === -1) {
-						release();
-					}
-					$.removeEventHandler(document.documentElement, 'mouseup', release);
-					$.removeEventHandler(document.documentElement, 'mousemove', drag);
+					$(document.documentElement).removeEventHandler('mouseup', release).removeEventHandler('mousemove', drag);
 				};
 
-			$.addEventHandler(document.documentElement, 'mouseup', release);
-			$.addEventHandler(document.documentElement, 'mousemove', drag);
+			$(document.documentElement).addEventHandler('mouseup', release).addEventHandler('mousemove', drag);
 		});
 	}
 
@@ -518,20 +546,15 @@ var morn = (function(){
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startX     = e.clientX,
-				startWidth = parseInt($(element).getComputedStyle('width'), 10),
+				startWidth = parseInt($(element).width(), 10),
 				drag       = function(e) {
-					if ($.event(e).which === -1) {
-						release();
-					}
 					element.style.width = Math.max((startWidth + e.clientX - startX), 0) + 'px';
 				},
 				release    = function() {
-					$.removeEventHandler(document.documentElement, 'mouseup', release);
-					$.removeEventHandler(document.documentElement, 'mousemove', drag);
+					$(document.documentElement).removeEventHandler('mouseup', release).removeEventHandler('mousemove', drag);
 				};
 
-			$.addEventHandler(document.documentElement, 'mouseup', release);
-			$.addEventHandler(document.documentElement, 'mousemove', drag);
+			$(document.documentElement).addEventHandler('mouseup', release).addEventHandler('mousemove', drag);
 		});
 	}
 
@@ -540,22 +563,17 @@ var morn = (function(){
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startX     = e.clientX,
-				startWidth = parseInt($(element).getComputedStyle('width'), 10),
-				startLeft  = parseInt($(element).getComputedStyle('left'),10),
+				startWidth = parseInt($(element).width(), 10),
+				startLeft  = parseInt($(element).rect().left,10),
 				drag       = function(e) {
-					if ($.event(e).which === -1) {
-						release();
-					}
 					element.style.left  = (startLeft + e.clientX - startX) + 'px';
 					element.style.width = Math.max(startWidth - (e.clientX - startX), 0) + 'px';
 				},
 				release = function() {
-					$.removeEventHandler(document.documentElement, 'mouseup', release);
-					$.removeEventHandler(document.documentElement, 'mousemove', drag);
+					$(document.documentElement).removeEventHandler('mouseup', release).removeEventHandler('mousemove', drag);
 				};
 
-			$.addEventHandler(document.documentElement, 'mouseup', release);
-			$.addEventHandler(document.documentElement, 'mousemove', drag);
+			$(document.documentElement).addEventHandler('mouseup', release).addEventHandler('mousemove', drag);
 		});
 	}
 
