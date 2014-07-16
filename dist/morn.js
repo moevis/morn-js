@@ -20,10 +20,6 @@ var morn = (function(){
 		this.dom = dom;
 		return this;
 	};
-
-	mornjs.prototype.getObj = function() {
-		return this.dom;
-	};
 	
 	// get element
 	mornjs.id = function(id, scope) {
@@ -65,29 +61,36 @@ var morn = (function(){
 	// 	mornjs(document).addEventHandler('DOMContentLoaded', func);
 	// };
 
-	function Event(e) {
-		this.e = e;
-	}
+	mornjs.event = function(e) {
+		return mornjs.event.prototype.$(e || window.event);
+	};
 
-	Event.prototype.preventDefault = function () {
+	mornjs.event.prototype.$ = function(e) {
+		this.e = e;
+		return this;
+	};
+
+	mornjs.event.prototype.$.prototype = mornjs.event.prototype;
+
+	mornjs.event.prototype.preventDefault = function () {
 		if (this.e.preventDefault) {
 			this.e.preventDefault();
 		}
 		this.e.returnValue = false;
 	};
 
-	Event.prototype.stopPropagation = function () {
+	mornjs.event.prototype.stopPropagation = function () {
 		if (this.e.stopPropagation) {
 			this.e.stopPropagation();
 		}
 		this.e.cancelBubble = true;
 	};
 
-	Event.prototype.target = function () {
+	mornjs.event.prototype.target = function () {
 		return this.e.target || this.e.srcElement || document;
 	};
 
-	Event.prototype.postion = function() {
+	mornjs.event.prototype.postion = function() {
 		var pos = [0, 0];
 		if (this.e.pageX || this.e.pageY) {
 			pos[0] = this.e.pageX;
@@ -99,19 +102,24 @@ var morn = (function(){
 		return pos;
 	};
 
-	Event.prototype.relatedTarget = function() {
+	mornjs.event.prototype.relatedTarget = function() {
 		return this.e.relatedTarget || this.e.fromElement || this.e.toElement;
 	};
 
-	Event.prototype.which = function() {
-		if (!this.e.which && this.e.button) {
+	mornjs.event.prototype.which = function() {
+		if (this.e.which !== undefined) {
+			return this.e.which;
+		} else if (this.e.button !== undefined) {
 			if (this.e.button & 1) return 0;      // Left
 			else if (this.e.button & 4) return 1; // Middle
 			else if (this.e.button & 2) return 2; // Right
+			else return -1;
+		} else {
+			return -1;
 		}
 	};
 
-	mornjs.prototype.addEventHandler = (function () {
+	mornjs.event.prototype.addEventHandler = (function () {
 		if (window.addEventListener) {
 			return function (ev, fn) {
 				if (this.dom.length) {
@@ -126,7 +134,7 @@ var morn = (function(){
             return function (ev, fn) {
             	if (this.dom.length) {
 					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i].attachEvent(ev, fn);
+						this.dom[i].attachEvent('on' + ev, fn);
 					}
 				} else {
 					this.dom.attachEvent('on' + ev, fn);
@@ -160,7 +168,7 @@ var morn = (function(){
             return function (el, ev, fn) {
             	if (el.length) {
 					for (var i = el.length - 1; i >= 0; i--) {
-						el[i].attachEvent(ev, fn);
+						el[i].attachEvent('on' + ev, fn);
 					}
 				} else {
 					el.attachEvent('on' + ev, fn);
@@ -184,9 +192,9 @@ var morn = (function(){
 			return function (ev, fn) {
 				this.dom.removeEventListener(ev, fn);
             };
-        } else if (window.dettachEvent) {
+        } else if (window.detachEvent) {
             return function (ev, fn) {
-				this.dom.dettachEvent('on' + ev, fn);
+				this.dom.detachEvent('on' + ev, fn);
 			};
         } else {
             return function (ev) {
@@ -200,9 +208,9 @@ var morn = (function(){
 			return function (el, ev, fn) {
 				el.removeEventListener(ev, fn);
             };
-        } else if (window.dettachEvent) {
+        } else if (window.detachEvent) {
             return function (el, ev, fn) {
-				el.dettachEvent('on' + ev, fn);
+				el.detachEvent('on' + ev, fn);
 			};
         } else {
             return function (el, ev) {
@@ -371,7 +379,7 @@ var morn = (function(){
 			    document.documentElement.doScroll('left');
 			} catch( error ) {
 			    setTimeout( arguments.callee, 50);
-			    return;
+			    return ;
 			}
 			for (var i = 0, len = startup.length; i < len; i++) {
 				startup[i]();
@@ -443,6 +451,9 @@ var morn = (function(){
 				startWidth  = parseInt($(element).getComputedStyle('width'),10),
 				startHeight = parseInt($(element).getComputedStyle('height'),10),
 				drag        = function(e) {
+					if ($.event(e).which === -1) {
+						release();
+					}
 					element.style.width  = (startWidth + e.clientX - startX) + 'px';
 					element.style.height = (startHeight + e.clientY - startY) + 'px';
 				},
@@ -461,11 +472,14 @@ var morn = (function(){
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startY      = e.clientY,
-				startTop    = parseInt($(element).getComputedStyle('top'), 10),
-				startHeight = parseInt($(element).getComputedStyle('height'), 10),
+				startTop    = Math.max(parseInt($(element).getComputedStyle('top'), 0), 10),
+				startHeight = Math.max(parseInt($(element).getComputedStyle('height'), 0), 10),
 				drag        = function(e) {
+					if ($.event(e).which === -1) {
+						release();
+					}
 					element.style.top = (startTop + e.clientY - startY) + 'px';
-					element.style.height = (startHeight - e.clientY + startY) + 'px';
+					element.style.height = Math.max((startHeight - e.clientY + startY), 0) + 'px';
 				},
 				release     = function() {
 					$.removeEventHandler(document.documentElement, 'mouseup', release);
@@ -484,9 +498,12 @@ var morn = (function(){
 			var startY      = e.clientY,
 				startHeight = parseInt($(element).getComputedStyle('height'), 10),
 				drag        = function(e) {
-					element.style.height = (startHeight + e.clientY - startY) + 'px';
+					element.style.height = Math.max((startHeight + e.clientY - startY), 0) + 'px';
 				},
 				release     = function() {
+					if ($.event(e).which === -1) {
+						release();
+					}
 					$.removeEventHandler(document.documentElement, 'mouseup', release);
 					$.removeEventHandler(document.documentElement, 'mousemove', drag);
 				};
@@ -503,7 +520,10 @@ var morn = (function(){
 			var startX     = e.clientX,
 				startWidth = parseInt($(element).getComputedStyle('width'), 10),
 				drag       = function(e) {
-					element.style.width = (startWidth + e.clientX - startX) + 'px';
+					if ($.event(e).which === -1) {
+						release();
+					}
+					element.style.width = Math.max((startWidth + e.clientX - startX), 0) + 'px';
 				},
 				release    = function() {
 					$.removeEventHandler(document.documentElement, 'mouseup', release);
@@ -523,8 +543,11 @@ var morn = (function(){
 				startWidth = parseInt($(element).getComputedStyle('width'), 10),
 				startLeft  = parseInt($(element).getComputedStyle('left'),10),
 				drag       = function(e) {
+					if ($.event(e).which === -1) {
+						release();
+					}
 					element.style.left  = (startLeft + e.clientX - startX) + 'px';
-					element.style.width = startWidth - (e.clientX - startX) + 'px';
+					element.style.width = Math.max(startWidth - (e.clientX - startX), 0) + 'px';
 				},
 				release = function() {
 					$.removeEventHandler(document.documentElement, 'mouseup', release);
@@ -538,5 +561,6 @@ var morn = (function(){
 
 	$.widget.resizeController = function(element, controller, opt) {
 		// body...
-	}
+	};
+
 }(morn));
