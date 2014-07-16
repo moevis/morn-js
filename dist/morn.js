@@ -3,10 +3,30 @@
 
 var morn = (function(){
 
-	var $ = {};
+	var mornjs = function(selector, context) {
+		if (selector !== undefined ) {
+			if (selector.nodeType !== undefined || selector.length !== undefined) {
+				return mornjs.prototype.$(selector);
+			} else if (selector.constructor === mornjs) {
+				return selector;
+			} else if (typeof selector === 'string'){
+				return mornjs.prototype.$(mornjs.id('string', context));
+			}
+		}
+
+	};
+
+	mornjs.prototype.$ = function(dom) {
+		this.dom = dom;
+		return this;
+	};
+
+	mornjs.prototype.getObj = function() {
+		return this.dom;
+	};
 	
 	// get element
-	$.id = function(id, scope) {
+	mornjs.id = function(id, scope) {
 		if (scope) {
 			return scope.getElementById(id);
 		} else {
@@ -14,7 +34,7 @@ var morn = (function(){
 		}
 	};
 
-	$.tag = function(tag, scope) {
+	mornjs.tag = function(tag, scope) {
 		if (scope) {
 			return scope.getElementsByTagName(tag);
 		} else {
@@ -22,7 +42,7 @@ var morn = (function(){
 		}
 	};
 
-	$.class = (function() {
+	mornjs.classStyle = (function() {
 		if (document.getElementsByClass) {
 			return document.getElementsByClass;
 		} else if (document.querySelector) {
@@ -31,7 +51,7 @@ var morn = (function(){
 			};
 		} else return function(classStyle) {
 			var result = [],
-				elements = $.tag('*');
+				elements = mornjs.tag('*');
 			for (var i = 0, len = elements.length; i < len; i++) {
 				if ((' ' + elements[i].className + ' ').indexOf(classStyle) !== -1) {
 					result.push(elements[i]);
@@ -41,9 +61,9 @@ var morn = (function(){
 		};
 	}());
 
-	$.ready = function(func) {
-		$.addEventHandler(document, 'DOMContentLoaded', func);
-	};
+	// mornjs.ready = function(func) {
+	// 	mornjs(document).addEventHandler('DOMContentLoaded', func);
+	// };
 
 	function Event(e) {
 		this.e = e;
@@ -91,7 +111,41 @@ var morn = (function(){
 		}
 	};
 
-	$.addEventHandler = (function () {
+	mornjs.prototype.addEventHandler = (function () {
+		if (window.addEventListener) {
+			return function (ev, fn) {
+				if (this.dom.length) {
+					for (var i = this.dom.length - 1; i >= 0; i--) {
+						this.dom[i].addEventListener(ev, fn, false);
+					}
+				} else {
+					this.dom.addEventListener(ev, fn, false);
+				}
+            };
+        } else if (window.attachEvent) {
+            return function (ev, fn) {
+            	if (this.dom.length) {
+					for (var i = this.dom.length - 1; i >= 0; i--) {
+						this.dom[i].attachEvent(ev, fn);
+					}
+				} else {
+					this.dom.attachEvent('on' + ev, fn);
+				}
+			};
+        } else {
+            return function (ev, fn) {
+            	if (this.dom.length) {
+					for (var i = this.dom.length - 1; i >= 0; i--) {
+						this.dom[i]['on' + ev] =  fn;
+					}
+            	} else {
+					this.dom['on' + ev] =  fn;
+            	}
+			};
+		}
+	}());
+
+	mornjs.addEventHandler = (function () {
 		if (window.addEventListener) {
 			return function (el, ev, fn) {
 				if (el.length) {
@@ -105,7 +159,9 @@ var morn = (function(){
         } else if (window.attachEvent) {
             return function (el, ev, fn) {
             	if (el.length) {
-
+					for (var i = el.length - 1; i >= 0; i--) {
+						el[i].attachEvent(ev, fn);
+					}
 				} else {
 					el.attachEvent('on' + ev, fn);
 				}
@@ -123,7 +179,23 @@ var morn = (function(){
 		}
 	}());
 
-	$.removeEventHandler = (function () {
+	mornjs.prototype.removeEventHandler = (function () {
+		if (window.removeEventListener) {
+			return function (ev, fn) {
+				this.dom.removeEventListener(ev, fn);
+            };
+        } else if (window.dettachEvent) {
+            return function (ev, fn) {
+				this.dom.dettachEvent('on' + ev, fn);
+			};
+        } else {
+            return function (ev) {
+				this.dom['on' + ev] =  null;
+			};
+		}
+	}());
+
+	mornjs.removeEventHandler = (function () {
 		if (window.removeEventListener) {
 			return function (el, ev, fn) {
 				el.removeEventListener(ev, fn);
@@ -139,7 +211,22 @@ var morn = (function(){
 		}
 	}());
 
-	$.addClass = (function () {
+	mornjs.prototype.addClass = (function () {
+		if (document.documentElement.classList) {
+			return function (classStyle) {
+				this.dom.classList.add(classStyle);
+			};
+		}else{
+			return function (classStyle) {
+				var c = ' ' + this.dom.className + ' ';
+				if (c.indexOf(' ' + classStyle + ' ') == -1) {
+					this.dom.className += ' ' + classStyle;
+				}
+			};
+		}
+	}());
+
+	mornjs.addClass = (function () {
 		if (document.documentElement.classList) {
 			return function (el, classStyle) {
 				el.classList.add(classStyle);
@@ -154,7 +241,19 @@ var morn = (function(){
 		}
 	}());
 
-	$.removeClass = (function () {
+	mornjs.prototype.removeClass = (function () {
+		if (document.documentElement.classList) {
+			return function (classStyle) {
+				this.dom.classList.remove(classStyle);
+			};
+		}else{
+			return function (classStyle) {
+				this.dom.className = this.dom.className.replace('/\\b' + classStyle + '\\b/g', '');
+			};
+		}
+	}());
+
+	mornjs.removeClass = (function () {
 		if (document.documentElement.classList) {
 			return function (el, classStyle) {
 				el.classList.remove(classStyle);
@@ -166,7 +265,22 @@ var morn = (function(){
 		}
 	}());
 
-	$.getComputedStyle = function( elem, name ) { 
+	mornjs.prototype.getComputedStyle = function(name) { 
+		if (this.dom.style[name]) {
+			return this.dom.style[name]; 
+		} else if (this.dom.currentStyle) {
+			return this.dom.currentStyle[name]; 
+		} else if (document.defaultView && document.defaultView.getComputedStyle) { 
+			name = name.replace(/([A-Z])/g,'-$1'); 
+			name = name.toLowerCase(); 
+			var s = document.defaultView.getComputedStyle(this.dom,''); 
+			return s && s.getPropertyValue(name); 
+		} else {
+			return null; 
+		}
+	};
+
+	mornjs.getComputedStyle = function( elem, name ) { 
 		if (elem.style[name]) {
 			return elem.style[name]; 
 		} else if (elem.currentStyle) {
@@ -181,14 +295,13 @@ var morn = (function(){
 		}
 	};
 
-	$.createDom = function(str){
+	mornjs.createDom = function(str){
 		var tmpNodes = [],
-			tmp = document.createElement('div'),
-			node;
+			tmp = document.createElement('div');
 		tmp.innerHTML = str;
 		for (var i = 0, len = tmp.children.length; i < len; i++) {
 			tmpNodes.push(tmp.children[i]);
-		};
+		}
 		// tmp.children
 		// while(node = tmp.firstChild){
 		// 	tmpNodes.push(node);
@@ -196,7 +309,17 @@ var morn = (function(){
 		return tmpNodes;
 	};
 
-	$.append = function(element, children) {
+	mornjs.prototype.append = function(children) {
+		if (children.length) {
+			for (var i = children.length - 1; i >= 0; i--) {
+				this.dom.element.appendChild(children[i]);
+			}
+		} else {
+			this.dom.appendChild(children);
+		}
+	};
+
+	mornjs.append = function(element, children) {
 		if (children.length) {
 			for (var i = children.length - 1; i >= 0; i--) {
 				element.appendChild(children[i]);
@@ -206,10 +329,76 @@ var morn = (function(){
 		}
 	}
 
-	$.widget = {};
+	mornjs.widget = {};
 
-	return $;
+	return mornjs;
 }());
+'use strict';
+/** 
+ * This page of code is from the page: http://stackoverflow.com/questions/5916900/detect-version-of-browser
+ * To get browser and version
+ */
+
+(function ($) {
+	$.browser = (function(){
+		var ua=navigator.userAgent,tem,M=ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || []; 
+		if(/trident/i.test(M[1])){
+			tem=/\brv[ :]+(\d+)/g.exec(ua) || []; 
+			return 'IE '+(tem[1]||'');
+		}   
+	    if(M[1]==='Chrome'){
+			tem=ua.match(/\bOPR\/(\d+)/)
+			if(tem!=null) {
+				return 'Opera '+tem[1];
+			}
+		}   
+	    M=M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+	    if((tem=ua.match(/version\/(\d+)/i))!=null) {M.splice(1,1,tem[1]);}
+	    return {
+	    	browser:M[0], version: M[1]
+	    };
+	}());
+}(morn));
+'use strict';
+
+(function($){
+	var documentReady = false,
+		startup = [];
+	
+	var onDomReady = function(){
+		if (documentReady === false) {
+			try {
+			    document.documentElement.doScroll('left');
+			} catch( error ) {
+			    setTimeout( arguments.callee, 50);
+			    return;
+			}
+			for (var i = 0, len = startup.length; i < len; i++) {
+				startup[i]();
+			}
+		}
+		documentReady = true;
+	};
+
+	$.ready = (function() {
+		if ($.browser.browser === 'MSIE' && $.browser.version < 9){
+			$.addEventHandler(document, 'readystatechange',function() {
+				if (document.readyState == 'complete') {
+					document.onreadystatechange = null;
+					onDomReady();
+				}
+			});
+			return function (func) {
+				startup.push(func);
+			};
+		} else {
+			return function (func) {
+				$.addEventHandler(document, 'DOMContentLoaded', func);
+			};
+		}
+	}());
+
+}(morn));
 'use strict';
 
 (function($) {
@@ -247,12 +436,12 @@ var morn = (function(){
 		}
 	};
 
-	function addResizeButton (element, controller) {
+	function addCornerButton (element, controller) {
 		$.addEventHandler(resizer, 'mousedown', function(e){
 			var startX      = e.clientX,
 				startY      = e.clientY,
-				startWidth  = parseInt($.getComputedStyle(element, 'width'),10),
-				startHeight = parseInt($.getComputedStyle(element, 'height'),10),
+				startWidth  = parseInt($(element).getComputedStyle('width'),10),
+				startHeight = parseInt($(element).getComputedStyle('height'),10),
 				drag        = function(e) {
 					element.style.width  = (startWidth + e.clientX - startX) + 'px';
 					element.style.height = (startHeight + e.clientY - startY) + 'px';
@@ -272,8 +461,8 @@ var morn = (function(){
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startY      = e.clientY,
-				startTop    = parseInt($.getComputedStyle(element, 'top'), 10),
-				startHeight = parseInt($.getComputedStyle(element, 'height'), 10),
+				startTop    = parseInt($(element).getComputedStyle('top'), 10),
+				startHeight = parseInt($(element).getComputedStyle('height'), 10),
 				drag        = function(e) {
 					element.style.top = (startTop + e.clientY - startY) + 'px';
 					element.style.height = (startHeight - e.clientY + startY) + 'px';
@@ -293,7 +482,7 @@ var morn = (function(){
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startY      = e.clientY,
-				startHeight = parseInt($.getComputedStyle(element, 'height'), 10),
+				startHeight = parseInt($(element).getComputedStyle('height'), 10),
 				drag        = function(e) {
 					element.style.height = (startHeight + e.clientY - startY) + 'px';
 				},
@@ -312,7 +501,7 @@ var morn = (function(){
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startX     = e.clientX,
-				startWidth = parseInt($.getComputedStyle(element, 'width'), 10),
+				startWidth = parseInt($(element).getComputedStyle('width'), 10),
 				drag       = function(e) {
 					element.style.width = (startWidth + e.clientX - startX) + 'px';
 				},
@@ -331,8 +520,8 @@ var morn = (function(){
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startX     = e.clientX,
-				startWidth = parseInt($.getComputedStyle(element, 'width'), 10),
-				startLeft  = parseInt($.getComputedStyle(element, 'left'),10),
+				startWidth = parseInt($(element).getComputedStyle('width'), 10),
+				startLeft  = parseInt($(element).getComputedStyle('left'),10),
 				drag       = function(e) {
 					element.style.left  = (startLeft + e.clientX - startX) + 'px';
 					element.style.width = startWidth - (e.clientX - startX) + 'px';

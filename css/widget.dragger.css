@@ -1,11 +1,15 @@
 .morn-resizable {
 	left: 0px;
+	z-index: 999;
 	top: 0px;
+	width: 100%;
+	height: 100%;
 	position: relative;
 }
 
 .morn-resizable-border-n {
 	position: absolute;
+	z-index: 1000;
 	width: 100%;
 	height: 3px;
 	background: #aaa;
@@ -15,6 +19,7 @@
 
 .morn-resizable-border-s {
 	position: absolute;
+	z-index: 1000;
 	width: 100%;
 	height: 3px;
 	background: #aaa;
@@ -24,6 +29,7 @@
 
 .morn-resizable-border-w {
 	position: absolute;
+	z-index: 1000;
 	height: 100%;
 	width: 3px;
 	background: #aaa;
@@ -34,6 +40,7 @@
 
 .morn-resizable-border-e {
 	position: absolute;
+	z-index: 1000;
 	height: 100%;
 	width: 3px;
 	background: #aaa;
