@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-07-15 */
+/*! morn-js - v0.0.1 - 2014-07-16 */
 'use strict';
 
 var morn = (function(){
@@ -249,15 +249,15 @@ var morn = (function(){
 
 	function addResizeButton (element, controller) {
 		$.addEventHandler(resizer, 'mousedown', function(e){
-			var startX = e.clientX,
-				startY = e.clientY,
-				startWidth = parseInt($.getComputedStyle(element, 'width'),10),
+			var startX      = e.clientX,
+				startY      = e.clientY,
+				startWidth  = parseInt($.getComputedStyle(element, 'width'),10),
 				startHeight = parseInt($.getComputedStyle(element, 'height'),10),
-				drag = function(e) {
+				drag        = function(e) {
 					element.style.width  = (startWidth + e.clientX - startX) + 'px';
 					element.style.height = (startHeight + e.clientY - startY) + 'px';
 				},
-				release = function() {
+				release     = function() {
 					$.removeEventHandler(document.documentElement, 'mouseup', release);
 					$.removeEventHandler(document.documentElement, 'mousemove', drag);
 				};
@@ -271,12 +271,14 @@ var morn = (function(){
 		var controller = $.createDom('<div class=\'morn-resizable-border-n\'/>');
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
-			var startY = e.clientY,
-				startTop = parseInt($.getComputedStyle(element, 'top'),10),
-				drag = function(e) {
-					element.style.top = (startTop - e.clientY + startY) + 'px';
+			var startY      = e.clientY,
+				startTop    = parseInt($.getComputedStyle(element, 'top'), 10),
+				startHeight = parseInt($.getComputedStyle(element, 'height'), 10),
+				drag        = function(e) {
+					element.style.top = (startTop + e.clientY - startY) + 'px';
+					element.style.height = (startHeight - e.clientY + startY) + 'px';
 				},
-				release = function() {
+				release     = function() {
 					$.removeEventHandler(document.documentElement, 'mouseup', release);
 					$.removeEventHandler(document.documentElement, 'mousemove', drag);
 				};
@@ -290,12 +292,12 @@ var morn = (function(){
 		var controller = $.createDom('<div class=\'morn-resizable-border-s\'/>');
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
-			var startY = e.clientY,
-				startHeight = parseInt($.getComputedStyle(element, 'height'),10),
-				drag = function(e) {
+			var startY      = e.clientY,
+				startHeight = parseInt($.getComputedStyle(element, 'height'), 10),
+				drag        = function(e) {
 					element.style.height = (startHeight + e.clientY - startY) + 'px';
 				},
-				release = function() {
+				release     = function() {
 					$.removeEventHandler(document.documentElement, 'mouseup', release);
 					$.removeEventHandler(document.documentElement, 'mousemove', drag);
 				};
@@ -309,12 +311,12 @@ var morn = (function(){
 		var controller = $.createDom('<div class=\'morn-resizable-border-e\'/>');
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
-			var startX = e.clientX,
-				startWidth = parseInt($.getComputedStyle(element, 'width'),10),
-				drag = function(e) {
-					element.style.width  = (startWidth + e.clientX - startX) + 'px';
+			var startX     = e.clientX,
+				startWidth = parseInt($.getComputedStyle(element, 'width'), 10),
+				drag       = function(e) {
+					element.style.width = (startWidth + e.clientX - startX) + 'px';
 				},
-				release = function() {
+				release    = function() {
 					$.removeEventHandler(document.documentElement, 'mouseup', release);
 					$.removeEventHandler(document.documentElement, 'mousemove', drag);
 				};
@@ -328,12 +330,12 @@ var morn = (function(){
 		var controller = $.createDom('<div class=\'morn-resizable-border-w\'/>');
 		$.append(element, controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
-			var startX = e.clientX,
-				startLeft = parseInt($.getComputedStyle(element, 'left'),10),
-				drag = function(e) {
+			var startX     = e.clientX,
+				startWidth = parseInt($.getComputedStyle(element, 'width'), 10),
+				startLeft  = parseInt($.getComputedStyle(element, 'left'),10),
+				drag       = function(e) {
 					element.style.left  = (startLeft + e.clientX - startX) + 'px';
-					element.style.width = parseInt(element.style.width, 10) - (e.clientX - startX) + 'px';
-					console.log(e.clientX - startX);
+					element.style.width = startWidth - (e.clientX - startX) + 'px';
 				},
 				release = function() {
 					$.removeEventHandler(document.documentElement, 'mouseup', release);
