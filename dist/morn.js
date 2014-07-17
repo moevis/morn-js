@@ -38,16 +38,21 @@ var morn = (function(){
 		}
 	};
 
-	mornjs.classStyle = (function() {
+	$.classStyle = (function() {
 		if (document.getElementsByClass) {
-			return document.getElementsByClass;
-		} else if (document.querySelector) {
-			return function(classStyle) {
-				return document.querySelectorAll('.' + classStyle);
+			return function(classStyle, scope) {
+				var dom = scope || document;
+				return dom.getElementsByClass(classStyle);
 			};
-		} else return function(classStyle) {
+		} else if (document.querySelector) {
+			return function(classStyle, scope) {
+				var dom = scope || document;
+				return dom.querySelectorAll('.' + classStyle);
+			};
+		} else return function(classStyle, scope) {
 			var result = [],
-				elements = mornjs.tag('*');
+				dom = scope || document,
+				elements = dom.getElementsByTagName('*');
 			for (var i = 0, len = elements.length; i < len; i++) {
 				if ((' ' + elements[i].className + ' ').indexOf(classStyle) !== -1) {
 					result.push(elements[i]);
