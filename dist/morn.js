@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-07-16 */
+/*! morn-js - v0.0.1 - 2014-07-17 */
 'use strict';
 
 var morn = (function(){
@@ -328,10 +328,10 @@ var morn = (function(){
 			return function (classStyle) {
 				if (this.dom.length) {
 					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i].this.dom.className = this.dom.className.replace('/\\b' + classStyle + '\\b/g', '');
+						this.dom[i].this.dom.className = this.dom.className.replace(new RegExp('\\b' + classStyle + '\\b','g'), '');
 					}
 				} else {
-					this.dom.className = this.dom.className.replace('/\\b' + classStyle + '\\b/g', '');
+					this.dom.className = this.dom.className.replace(new RegExp('\\b' + classStyle + '\\b','g'), '');
 				}
 				return this;
 			};
@@ -353,10 +353,10 @@ var morn = (function(){
 			return function (el, classStyle) {
 				if (el.length) {
 					for (var i = el.length - 1; i >= 0; i--) {
-						el[i].el.className = el.className.replace('/\\b' + classStyle + '\\b/g', '');
+						el[i].el.className = el.className.replace(new RegExp('\\b' + classStyle + '\\b','g'), '');
 					}
 				} else {
-					el.className = el.className.replace('/\\b' + classStyle + '\\b/g', '');
+					el.className = el.className.replace(new RegExp('\\b' + classStyle + '\\b','g'), '');
 				}
 			};
 		}
