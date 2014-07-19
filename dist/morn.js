@@ -38,7 +38,7 @@ var morn = (function(){
 		}
 	};
 
-	$.classStyle = (function() {
+	mornjs.classStyle = (function() {
 		if (document.getElementsByClass) {
 			return function(classStyle, scope) {
 				var dom = scope || document;
@@ -382,18 +382,18 @@ var morn = (function(){
 		}
 	};
 
-	mornjs.getComputedStyle = function( elem, name ) { 
+	mornjs.getComputedStyle = function( elem, name ) {
 		if (elem.style[name]) {
-			return elem.style[name]; 
+			return elem.style[name];
 		} else if (elem.currentStyle) {
-			return elem.currentStyle[name]; 
-		} else if (document.defaultView && document.defaultView.getComputedStyle) { 
-			name = name.replace(/([A-Z])/g,'-$1'); 
-			name = name.toLowerCase(); 
-			var s = document.defaultView.getComputedStyle(elem,''); 
-			return s && s.getPropertyValue(name); 
+			return elem.currentStyle[name];
+		} else if (document.defaultView && document.defaultView.getComputedStyle) {
+			name = name.replace(/([A-Z])/g,'-$1');
+			name = name.toLowerCase();
+			var s = document.defaultView.getComputedStyle(elem,'');
+			return s && s.getPropertyValue(name);
 		} else {
-			return null; 
+			return null;
 		}
 	};
 
