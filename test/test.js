@@ -1,7 +1,7 @@
 test('mornjs.lexer.js', function() {
 
-	var tokens = morn.parseSelector('tag .class #id *');
+	var tokens = morn.parseSelector('.outer .inner');
 
-	equal(tokens.length, 7, 'right tokens');
+	equal(tokens.length, 3, '');
 	
 });

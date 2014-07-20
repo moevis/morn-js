@@ -5,18 +5,18 @@ var morn = (function(){
 
 	var mornjs = function(selector, context) {
 		if (selector !== undefined ) {
-			if (selector.nodeType !== undefined || selector.length !== undefined) {
-				return mornjs.prototype.$(selector);
-			} else if (selector.constructor === mornjs) {
+			if (typeof selector === 'string') {
+				return mornjs.prototype.init(mornjs.parseSelector(selector));
+			} else if (selector.nodeType !== undefined || selector.length !== undefined) {
+				return mornjs.prototype.init(selector);
+			} else if (selector.constructor === mornjs){
 				return selector;
-			} else if (typeof selector === 'string'){
-				return mornjs.prototype.$(mornjs.id('string', context));
 			}
 		}
 
 	};
 
-	mornjs.prototype.$ = function(dom) {
+	mornjs.prototype.init = function(dom) {
 		this.dom = dom;
 		return this;
 	};
@@ -411,7 +411,7 @@ var morn = (function(){
 		} else {
 			element.appendChild(children);
 		}
-	}
+	};
 
 	mornjs.prototype.prepend = function(children) {
 		var dom;
@@ -576,7 +576,7 @@ var morn = (function(){
         this.number = 0;
         this.pos = 0;
         this.seletor = text;
-    };
+    }
 
     Stream.EOL = -1;
 
@@ -584,6 +584,7 @@ var morn = (function(){
         if (this.pos < this.seletor.length) {
             return this.seletor.charAt(this.pos++);
         } else {
+        	this.pos++;
             return Stream.EOL;
         }
     };
@@ -704,15 +705,16 @@ var morn = (function(){
 					if (type.isAlpha(c)) {
 						state.push(State.INTAG);
 					} else if (c === '.') {
+						save = false;
 						state.push(State.INCLASS);
 					} else if (c === '#') {
+						save = false;
 						state.push(State.INID);
 					} else if (c === '*') {
 						saveToken(Token.ALL);
 					} else if (type.isWhite(c)) {
 						state.change(State.INWHITE);
 					} else if (c === Stream.EOL) {
-						putBack();
 						state.change(State.DONE);
 					}
 					break;
@@ -726,7 +728,7 @@ var morn = (function(){
 					break;
 
 				case State.INCLASS:
-					if (!type.isAlpha(c) && !type.isNum(c)) {
+					if (!type.isAlpha(c) && !type.isNum(c) && c !== '-') {
 						putBack();
 						saveToken(Token.CLASS);
 						state.pop();
@@ -747,6 +749,7 @@ var morn = (function(){
 						saveToken(Token.WHITE);
 						state.pop();
 					}
+					save = false;
 					break;
 				default :
 					//never reaches here;
@@ -754,24 +757,88 @@ var morn = (function(){
 
 			if (save === true) {
 				buffer += c;
-				if (buffer.length > 100) {
-					return tokens;
-				}
 			}
 
 			if (_saveToken) {
 				addToken(buffer, currentToken);
-				if (tokens.length > 1000) {
-					console.log('bug');
-					return tokens;
+				if (tokens.length > 100) {
+					return analyse(tokens);
 				}
 				buffer = '';
 			}
 		}
 
-		return tokens;
+		return analyse(tokens);
 	};
 
+
+	function analyse (tokens) {
+		var lastId = 0,
+			result = null,
+			lastResult = null,
+			white = true;
+
+		for (var i = tokens.length - 1; i >= 0; i--) {
+			if (tokens[i].type === Token.ID) {
+				lastId = i;
+				break;
+			}
+		}
+
+		for (var len = tokens.length, i = lastId; i < len; i++) {
+			switch(tokens[i].type) {
+				case Token.WHITE: 
+					white = true;
+					break;
+
+				case Token.ID:
+					result = $.id(tokens[i].text);
+					break;
+
+				case Token.CLASS:
+					if (lastResult !== null) {
+						if (lastResult.length !== undefined) {
+							result = [];
+							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+								var tmp = $.classStyle(tokens[i].text, lastResult[iter]);
+								for (var index = 0, l = tmp.length; index < l; index++) {
+									result.push(tmp[index]);
+								}
+							}
+						} else {
+							result = $.classStyle(tokens[i].text, lastResult);
+						}
+					} else {
+						result = $.classStyle(tokens[i].text);
+					}
+					lastResult = result;
+					break;
+
+				case Token.TAG:
+					if (lastResult !== null) {
+						if (lastResult.length !== undefined) {
+							result = [];
+							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+								var tmp = $.tag(tokens[i].text, lastResult[iter]);
+								for (var index = 0, l = tmp.length; index < l; index++) {
+									result.push(tmp[index]);
+								}
+							}
+						} else {
+							result = $.tag(tokens[i].text, lastResult);
+						}
+					} else {
+						result = $.tag(tokens[i].text);
+					}
+					lastResult = result;
+					break;
+				default:
+			}
+		}
+
+		return result;
+
+	}
 }(morn));
 'use strict';
 
