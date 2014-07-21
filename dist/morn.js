@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-07-20 */
+/*! morn-js - v0.0.1 - 2014-07-21 */
 'use strict';
 
 var morn = (function(){
@@ -632,6 +632,7 @@ var morn = (function(){
 		CLASS         : 2,
 		TAG           : 3,
 		ALL           : 4,
+		FAKE          : 5,
 		UNKNOWN       : 8
 	};
 
@@ -641,6 +642,7 @@ var morn = (function(){
 		INID:    2,
 		INCLASS: 3,
 		INTAG:   4,
+		INFAKECLASS:5,
 		DONE:    16
 	};
 
@@ -716,6 +718,9 @@ var morn = (function(){
 						state.change(State.INWHITE);
 					} else if (c === Stream.EOL) {
 						state.change(State.DONE);
+					} else if (c === ':') {
+						save = false;
+						state.push(State.INFAKECLASS);
 					}
 					break;
 
@@ -751,6 +756,13 @@ var morn = (function(){
 					}
 					save = false;
 					break;
+
+				case State.INFAKECLASS:
+					if (!type.isAlpha(c)) {
+						putBack();
+						saveToken(Token.FAKE);
+						state.pop();
+					}
 				default :
 					//never reaches here;
 			}
@@ -832,6 +844,43 @@ var morn = (function(){
 					}
 					lastResult = result;
 					break;
+
+				case Token.FAKE:
+					if (lastResult !== null) {
+						var fake = tokens[i].text;
+
+						if (fake === 'odd') {
+
+							if (lastResult.length !== undefined) {
+								result = [];
+								for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+									if (iter % 2 === 0) {
+										result.push(lastResult[iter]);
+									}
+								}
+							} else {
+								result = lastResult;
+							}
+
+						} else if (fake === 'even'){
+
+							if (lastResult.length !== undefined) {
+								result = [];
+								for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+									if (iter % 2 === 1) {
+										result.push(lastResult[iter]);
+									}
+								}
+							} else {
+								result = [];
+							}
+
+						}
+					} else {
+						result = []
+					}
+
+					lastResult = result;
 				default:
 			}
 		}
