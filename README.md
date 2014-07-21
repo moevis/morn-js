@@ -6,7 +6,9 @@ This is a javascript toolkit library.
 It has some useful functions. For example:
 
 * chain function.
-* selector : morn.id('id'), morn.tag('tagname'), or morn('#id tagname .class').
+* selector 
+  * morn.id('id'), morn.tag('tagname'), or morn('#id') , morn('.class').
+  * morn('tag:odd') or morn('tag:even')
 * event add and remove.
 * create dom, append, prepend.
 
