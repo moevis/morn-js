@@ -6,9 +6,9 @@ var morn = (function(){
 	var mornjs = function(selector, context) {
 		if (selector !== undefined ) {
 			if (typeof selector === 'string') {
-				return mornjs.prototype.init(mornjs.parseSelector(selector));
+				return new mornjs.prototype.init(mornjs.parseSelector(selector));
 			} else if (selector.nodeType !== undefined || selector.length !== undefined) {
-				return mornjs.prototype.init(selector);
+				return new mornjs.prototype.init(selector);
 			} else if (selector.constructor === mornjs){
 				return selector;
 			}
@@ -20,6 +20,8 @@ var morn = (function(){
 		this.dom = dom;
 		return this;
 	};
+
+	mornjs.prototype.init.prototype = mornjs.prototype;
 	
 	// get element
 	mornjs.id = function(id, scope) {
@@ -1040,4 +1042,29 @@ var morn = (function(){
 		// body...
 	};
 
+}(morn));
+'use strict';
+
+(function($) {
+	$.widget.sticky = function(element, opt) {
+		var option = opt || {};
+			option.topOffset = option.scrollTop || 0;
+		var elementTop = $(element).rect().top,
+			offset = option.topOffset + elementTop,
+			isSticky = false,
+			originalPostion = $(element).getComputedStyle('position');
+		$(window).addEventHandler('scroll', function(){
+			if (document.body.scrollTop > offset) {
+				if (!isSticky) {
+					element.dom.style.position = 'fixed';
+					element.dom.style.top = offset + 'px';
+				}
+			} else {
+				if (isSticky) {
+					element.dom.style.top = elementTop;
+					element.dom.style.position = originalPostion;
+				}
+			}
+		});
+	};
 }(morn));
