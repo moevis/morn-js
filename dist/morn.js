@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-07-21 */
+/*! morn-js - v0.0.1 - 2014-07-22 */
 'use strict';
 
 var morn = (function(){
@@ -862,7 +862,7 @@ var morn = (function(){
 								result = lastResult;
 							}
 
-						} else if (fake === 'even'){
+						} else if (fake === 'even') {
 
 							if (lastResult.length !== undefined) {
 								result = [];
@@ -875,6 +875,22 @@ var morn = (function(){
 								result = [];
 							}
 
+						} else if (fake === 'first') {
+
+							if (lastResult.length !== undefined) {
+								result = [lastResult[0]];
+							} else {
+								result = lastResult;
+							}
+
+						} else if (fake === 'last') {
+
+							if (lastResult.length !== undefined) {
+								result = [lastResult[lastResult.length - 1]];
+							} else {
+								result = lastResult;
+							}
+							
 						}
 					} else {
 						result = []
