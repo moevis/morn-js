@@ -916,7 +916,7 @@ var morn = (function(){
 		opt.border = [true, true, true, true]
 		opt.corner = [true, true, true, true]
 	*/
-	$.widget.resize = function (element, opt) {
+	$.widget.prototype.resize = function (opt) {
 		var options       = opt || {};
 		options.maxHeight = options.maxHeight || null;
 		options.minHeight = options.minHeight || null;
@@ -925,6 +925,7 @@ var morn = (function(){
 		options.direction = options.direction || 'all';
 		options.border    = options.border || [true, true, true, true];
 		options.corner    = options.corner || [true, true, true, true];
+		var element       = this.dom;
 
 		$.addClass(element, 'morn-resizable');
 
