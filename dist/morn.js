@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-07-22 */
+/*! morn-js - v0.0.1 - 2014-07-23 */
 'use strict';
 
 var morn = (function(){
@@ -16,7 +16,7 @@ var morn = (function(){
 
 	};
 
-	mornjs.prototype.init = function(dom) {
+	mornjs.prototype.init = mornjs.widget = function(dom) {
 		this.dom = dom;
 		return this;
 	};
@@ -437,8 +437,6 @@ var morn = (function(){
 
 		return this;
 	};
-
-	mornjs.widget = {};
 
 	return mornjs;
 }());
@@ -1046,23 +1044,26 @@ var morn = (function(){
 'use strict';
 
 (function($) {
-	$.widget.sticky = function(element, opt) {
+	$.widget.prototype.sticky = function(opt) {
 		var option = opt || {};
 			option.topOffset = option.scrollTop || 0;
-		var elementTop = $(element).rect().top,
+		var element = this.dom,
+			elementTop = $(element).rect().top,
 			offset = option.topOffset + elementTop,
 			isSticky = false,
 			originalPostion = $(element).getComputedStyle('position');
 		$(window).addEventHandler('scroll', function(){
 			if (document.body.scrollTop > offset) {
 				if (!isSticky) {
-					element.dom.style.position = 'fixed';
-					element.dom.style.top = offset + 'px';
+					element.style.position = 'fixed';
+					element.style.top = option.topOffset + 'px';
+					isSticky = true;
 				}
 			} else {
 				if (isSticky) {
-					element.dom.style.top = elementTop;
-					element.dom.style.position = originalPostion;
+					element.style.top = elementTop;
+					element.style.position = originalPostion;
+					isSticky = false;
 				}
 			}
 		});
