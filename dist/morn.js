@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-07-23 */
+/*! morn-js - v0.0.1 - 2014-07-24 */
 'use strict';
 
 var morn = (function(){
@@ -17,7 +17,11 @@ var morn = (function(){
 	};
 
 	mornjs.prototype.init = mornjs.widget = function(dom) {
-		this.dom = dom;
+		if (dom.length === undefined || dom === window) {
+			this.dom = [dom];
+		} else {
+			this.dom = dom;
+		}
 		return this;
 	};
 
@@ -67,35 +71,23 @@ var morn = (function(){
 	mornjs.prototype.addEventHandler = (function () {
 		if (window.addEventListener) {
 			return function (ev, fn) {
-				if (this.dom.length) {
-					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i].addEventListener(ev, fn, false);
-					}
-				} else {
-					this.dom.addEventListener(ev, fn, false);
+				for (var i = this.dom.length - 1; i >= 0; i--) {
+					this.dom[i].addEventListener(ev, fn, false);
 				}
 				return this;
             };
         } else if (window.attachEvent) {
             return function (ev, fn) {
-            	if (this.dom.length) {
-					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i].attachEvent('on' + ev, fn);
-					}
-				} else {
-					this.dom.attachEvent('on' + ev, fn);
+				for (var i = this.dom.length - 1; i >= 0; i--) {
+					this.dom[i].attachEvent('on' + ev, fn);
 				}
 				return this;
 			};
         } else {
             return function (ev, fn) {
-            	if (this.dom.length) {
-					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i]['on' + ev] =  fn;
-					}
-            	} else {
-					this.dom['on' + ev] = fn;
-            	}
+				for (var i = this.dom.length - 1; i >= 0; i--) {
+					this.dom[i]['on' + ev] =  fn;
+				}
 				return this;
 			};
 		}
@@ -138,36 +130,23 @@ var morn = (function(){
 	mornjs.prototype.removeEventHandler = (function () {
 		if (window.removeEventListener) {
 			return function (ev, fn) {
-				if (this.dom.length) {
-					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i].removeEventListener(ev, fn);
-					}
-				} else {
-					this.dom.removeEventListener(ev, fn);
+				for (var i = this.dom.length - 1; i >= 0; i--) {
+					this.dom[i].removeEventListener(ev, fn);
 				}
 				return this;
             };
         } else if (window.detachEvent) {
             return function (ev, fn) {
-				if (this.dom.length) {
-					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i].detachEvent('on' + ev, fn);
-					}
-				} else {
-					this.dom.detachEvent('on' + ev, fn);
+				for (var i = this.dom.length - 1; i >= 0; i--) {
+					this.dom[i].detachEvent('on' + ev, fn);
 				}
 				return this;
 			};
         } else {
             return function (ev) {
-            	if (this.dom.length) {
-					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i]['on' + ev] = null;
-					}
-            	} else {
-					this.dom['on' + ev] = null;
-            	}
-				
+				for (var i = this.dom.length - 1; i >= 0; i--) {
+					this.dom[i]['on' + ev] = null;
+				}
 				return this;
 			};
 		}
@@ -198,25 +177,14 @@ var morn = (function(){
 	mornjs.prototype.addClass = (function () {
 		if (document.documentElement.classList) {
 			return function (classStyle) {
-				if (this.dom.length) {
-					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i].classList.add(classStyle);
-					}
-				} else {
-					this.dom.classList.add(classStyle);
+				for (var i = this.dom.length - 1; i >= 0; i--) {
+					this.dom[i].classList.add(classStyle);
 				}
 				return this;
 			};
 		}else{
 			return function (classStyle) {
-				if (this.dom.length) {
-					for (var i = this.dom.length - 1; i >= 0; i--) {
-						var c = ' ' + this.dom.className + ' ';
-						if (c.indexOf(' ' + classStyle + ' ') == -1) {
-							this.dom.className += ' ' + classStyle;
-						}
-					}
-				} else {
+				for (var i = this.dom.length - 1; i >= 0; i--) {
 					var c = ' ' + this.dom.className + ' ';
 					if (c.indexOf(' ' + classStyle + ' ') == -1) {
 						this.dom.className += ' ' + classStyle;
@@ -260,23 +228,15 @@ var morn = (function(){
 	mornjs.prototype.removeClass = (function () {
 		if (document.documentElement.classList) {
 			return function (classStyle) {
-				if (this.dom.length) {
-					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i].classList.remove(classStyle);
-					}
-				} else {
-					this.dom.classList.remove(classStyle);
+				for (var i = this.dom.length - 1; i >= 0; i--) {
+					this.dom[i].classList.remove(classStyle);
 				}
 				return this;
 			};
 		}else{
 			return function (classStyle) {
-				if (this.dom.length) {
-					for (var i = this.dom.length - 1; i >= 0; i--) {
-						this.dom[i].this.dom.className = this.dom.className.replace(new RegExp('\\b' + classStyle + '\\b','g'), '');
-					}
-				} else {
-					this.dom.className = this.dom.className.replace(new RegExp('\\b' + classStyle + '\\b','g'), '');
+				for (var i = this.dom.length - 1; i >= 0; i--) {
+					this.dom[i].this.dom.className = this.dom.className.replace(new RegExp('\\b' + classStyle + '\\b','g'), '');
 				}
 				return this;
 			};
@@ -307,69 +267,65 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.prototype.getComputedStyle = function(name) { 
-		if (this.dom.style[name]) {
-			return this.dom.style[name]; 
-		} else if (this.dom.currentStyle) {
-			return this.dom.currentStyle[name]; 
-		} else if (document.defaultView && document.defaultView.getComputedStyle) { 
-			name = name.replace(/([A-Z])/g,'-$1'); 
-			name = name.toLowerCase(); 
-			var s = document.defaultView.getComputedStyle(this.dom,''); 
-			return s && s.getPropertyValue(name); 
-		} else {
-			return null; 
+	mornjs.prototype.getComputedStyle = function(name) {
+		if (this.dom.length > 0) {
+			if (this.dom[0].style[name]) {
+				return this.dom[0].style[name];
+			} else if (this.dom[0].currentStyle) {
+				return this.dom[0].currentStyle[name];
+			} else if (document.defaultView && document.defaultView.getComputedStyle) {
+				name = name.replace(/([A-Z])/g,'-$1');
+				name = name.toLowerCase();
+				var s = document.defaultView.getComputedStyle(this.dom,'');
+				return s && s.getPropertyValue(name);
+			} else {
+				return null;
+			}
 		}
 	};
 
-	mornjs.getComputedStyle = function( elem, name ) { 
+	mornjs.getComputedStyle = function( elem, name ) {
 		if (elem.style[name]) {
-			return elem.style[name]; 
+			return elem.style[name];
 		} else if (elem.currentStyle) {
-			return elem.currentStyle[name]; 
-		} else if (document.defaultView && document.defaultView.getComputedStyle) { 
-			name = name.replace(/([A-Z])/g,'-$1'); 
-			name = name.toLowerCase(); 
-			var s = document.defaultView.getComputedStyle(elem,''); 
-			return s && s.getPropertyValue(name); 
+			return elem.currentStyle[name];
+		} else if (document.defaultView && document.defaultView.getComputedStyle) {
+			name = name.replace(/([A-Z])/g,'-$1');
+			name = name.toLowerCase();
+			var s = document.defaultView.getComputedStyle(elem,'');
+			return s && s.getPropertyValue(name);
 		} else {
-			return null; 
+			return null;
 		}
 	};
 
 	mornjs.prototype.width = function(width) {
 		if (width === undefined) {
 			var rect;
-			if (this.dom.length !== undefined && this.dom.length !== 0) {
+			if (this.dom.length > 0) {
 				rect = this.dom[0].getBoundingClientRect();
-			} else {
-				rect = this.dom.getBoundingClientRect();
+				return rect.right - rect.left;
 			}
-			return rect.right - rect.left;
 		}
 	}
 
 	mornjs.prototype.height = function(height) {
 		if (height === undefined) {
 			var rect;
-			if (this.dom.length !== undefined && this.dom.length !== 0) {
+			if (this.dom.length !== 0) {
 				rect = this.dom[0].getBoundingClientRect();
-			} else {
-				rect = this.dom.getBoundingClientRect();
+				return rect.bottom - rect.top;
 			}
-			return rect.bottom - rect.top;
 		}
 	}
 
 	mornjs.prototype.rect = function() {
 		// if (width === undefined) {
 			var rect;
-			if (this.dom.length !== undefined && this.dom.length !== 0) {
+			if (this.dom.length !== 0) {
 				rect = this.dom[0].getBoundingClientRect();
-			} else {
-				rect = this.dom.getBoundingClientRect();
+				return rect;
 			}
-			return rect;
 		// }
 	}
 
@@ -385,19 +341,15 @@ var morn = (function(){
 
 	mornjs.prototype.append = function(children) {
 		var dom;
-		if (this.dom.length) {
+		if (this.dom.length > 0) {
 			dom = this.dom[0];
 		} else {
-			dom = this.dom;
-		}
-
-		if (dom === undefined) {
 			return this;
 		}
 
 		if (children.length) {
 			for (var i = children.length - 1; i >= 0; i--) {
-				dom.element.appendChild(children[i]);
+				dom.appendChild(children[i]);
 			}
 		} else {
 			dom.appendChild(children);
@@ -405,25 +357,11 @@ var morn = (function(){
 		return this;
 	};
 
-	mornjs.append = function(element, children) {
-		if (children.length) {
-			for (var i = children.length - 1; i >= 0; i--) {
-				element.appendChild(children[i]);
-			}
-		} else {
-			element.appendChild(children);
-		}
-	};
-
 	mornjs.prototype.prepend = function(children) {
 		var dom;
-		if (this.dom.length) {
+		if (this.dom.length > 0) {
 			dom = this.dom[0];
 		} else {
-			dom = this.dom;
-		}
-
-		if (dom === undefined) {
 			return this;
 		}
 
@@ -804,21 +742,17 @@ var morn = (function(){
 					break;
 
 				case Token.ID:
-					result = $.id(tokens[i].text);
+					result = [$.id(tokens[i].text)];
 					break;
 
 				case Token.CLASS:
 					if (lastResult !== null) {
-						if (lastResult.length !== undefined) {
-							result = [];
-							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-								var tmp = $.classStyle(tokens[i].text, lastResult[iter]);
-								for (var index = 0, l = tmp.length; index < l; index++) {
-									result.push(tmp[index]);
-								}
+						result = [];
+						for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+							var tmp = $.classStyle(tokens[i].text, lastResult[iter]);
+							for (var index = 0, l = tmp.length; index < l; index++) {
+								result.push(tmp[index]);
 							}
-						} else {
-							result = $.classStyle(tokens[i].text, lastResult);
 						}
 					} else {
 						result = $.classStyle(tokens[i].text);
@@ -828,16 +762,12 @@ var morn = (function(){
 
 				case Token.TAG:
 					if (lastResult !== null) {
-						if (lastResult.length !== undefined) {
-							result = [];
-							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-								var tmp = $.tag(tokens[i].text, lastResult[iter]);
-								for (var index = 0, l = tmp.length; index < l; index++) {
-									result.push(tmp[index]);
-								}
+						result = [];
+						for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+							var tmp = $.tag(tokens[i].text, lastResult[iter]);
+							for (var index = 0, l = tmp.length; index < l; index++) {
+								result.push(tmp[index]);
 							}
-						} else {
-							result = $.tag(tokens[i].text, lastResult);
 						}
 					} else {
 						result = $.tag(tokens[i].text);
@@ -851,49 +781,29 @@ var morn = (function(){
 
 						if (fake === 'odd') {
 
-							if (lastResult.length !== undefined) {
-								result = [];
-								for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-									if (iter % 2 === 0) {
-										result.push(lastResult[iter]);
-									}
+							result = [];
+							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+								if (iter % 2 === 0) {
+									result.push(lastResult[iter]);
 								}
-							} else {
-								result = lastResult;
 							}
 
 						} else if (fake === 'even') {
-
-							if (lastResult.length !== undefined) {
-								result = [];
-								for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-									if (iter % 2 === 1) {
-										result.push(lastResult[iter]);
-									}
+							result = [];
+							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+								if (iter % 2 === 1) {
+									result.push(lastResult[iter]);
 								}
-							} else {
-								result = [];
 							}
 
 						} else if (fake === 'first') {
-
-							if (lastResult.length !== undefined) {
 								result = [lastResult[0]];
-							} else {
-								result = lastResult;
-							}
 
 						} else if (fake === 'last') {
-
-							if (lastResult.length !== undefined) {
 								result = [lastResult[lastResult.length - 1]];
-							} else {
-								result = lastResult;
-							}
-							
 						}
 					} else {
-						result = []
+						result = [];
 					}
 
 					lastResult = result;
@@ -925,7 +835,7 @@ var morn = (function(){
 		options.direction = options.direction || 'all';
 		options.border    = options.border || [true, true, true, true];
 		options.corner    = options.corner || [true, true, true, true];
-		var element       = this.dom;
+		var element       = this.dom[0];
 
 		$.addClass(element, 'morn-resizable');
 
@@ -983,7 +893,7 @@ var morn = (function(){
 
 	function addResizeBorderS (element) {
 		var controller = $.createDom('<div class=\'morn-resizable-border-s\'/>');
-		$.append(element, controller);
+		$(element).append(controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startY      = e.clientY,
 				startHeight = parseInt($(element).height(), 10),
@@ -1001,7 +911,7 @@ var morn = (function(){
 
 	function addResizeBorderE (element) {
 		var controller = $.createDom('<div class=\'morn-resizable-border-e\'/>');
-		$.append(element, controller);
+		$(element).append(controller);
 		$.addEventHandler(controller, 'mousedown', function(e){
 			var startX     = e.clientX,
 				startWidth = parseInt($(element).width(), 10),
@@ -1048,7 +958,7 @@ var morn = (function(){
 	$.widget.prototype.sticky = function(opt) {
 		var option = opt || {};
 			option.topOffset = option.scrollTop || 0;
-		var element = this.dom,
+		var element = this.dom[0],
 			elementTop = $(element).rect().top,
 			offset = option.topOffset + elementTop,
 			isSticky = false,
