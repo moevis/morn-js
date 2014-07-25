@@ -835,6 +835,20 @@ var morn = (function(){
 			return result;
 		};
 	}());
+
+	$.prototype.get = function(index) {
+		return this.dom[index];
+	};
+
+	$.prototype.forEach = function(func) {
+		for (var i = 0, len = this.dom.length; i < len; i++) {
+			func.call(this.dom[i], this.dom[i], i);
+		}
+	};
+
+	$.prototype.parent = function() {
+		return $(this.dom[0].parentElement);
+	};
 }(morn));
 'use strict';
 
