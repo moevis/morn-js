@@ -10,7 +10,7 @@ module.exports = function (grunt) {
           stripBanners: true,
           banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' + '<%= grunt.template.today("yyyy-mm-dd") %> */\n',
         },
-        src: ['./lib/main.js','./lib/morn.browser.js', './lib/*.js'],
+        src: ['./lib/main.js','./lib/morn.type.js','./lib/morn.browser.js', './lib/*.js'],
         dest: './dist/morn.js'
       },
       style: {
