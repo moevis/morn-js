@@ -7,7 +7,7 @@ var morn = (function(){
 		if (selector !== undefined ) {
 			if (typeof selector === 'string') {
 				return new mornjs.prototype.init(mornjs.parseSelector(selector));
-			} else if (selector.nodeType !== undefined || selector.length !== undefined) {
+			} else if (mornjs.isNode(selector)) {
 				return new mornjs.prototype.init(selector);
 			} else if (selector.constructor === mornjs){
 				return selector;
@@ -26,47 +26,6 @@ var morn = (function(){
 	};
 
 	mornjs.prototype.init.prototype = mornjs.prototype;
-	
-	// get element
-	mornjs.id = function(id, scope) {
-		if (scope) {
-			return scope.getElementById(id);
-		} else {
-			return document.getElementById(id);
-		}
-	};
-
-	mornjs.tag = function(tag, scope) {
-		if (scope) {
-			return scope.getElementsByTagName(tag);
-		} else {
-			return document.getElementsByTagName(tag);
-		}
-	};
-
-	mornjs.classStyle = (function() {
-		if (document.getElementsByClass) {
-			return function(classStyle, scope) {
-				var dom = scope || document;
-				return dom.getElementsByClass(classStyle);
-			};
-		} else if (document.querySelector) {
-			return function(classStyle, scope) {
-				var dom = scope || document;
-				return dom.querySelectorAll('.' + classStyle);
-			};
-		} else return function(classStyle, scope) {
-			var result = [],
-				dom = scope || document,
-				elements = dom.getElementsByTagName('*');
-			for (var i = 0, len = elements.length; i < len; i++) {
-				if ((' ' + elements[i].className + ' ').indexOf(classStyle) !== -1) {
-					result.push(elements[i]);
-				}
-			}
-			return result;
-		};
-	}());
 
 	mornjs.prototype.addEventHandler = (function () {
 		if (window.addEventListener) {
@@ -379,7 +338,6 @@ var morn = (function(){
 	return mornjs;
 }());
 'use strict';
-
 (function($){
 
 	$.isNode = function(o){
@@ -833,6 +791,50 @@ var morn = (function(){
 		return result;
 
 	}
+}(morn));
+'use strict';
+
+(function($){
+	// get element
+	$.id = function(id, scope) {
+		if (scope) {
+			return scope.getElementById(id);
+		} else {
+			return document.getElementById(id);
+		}
+	};
+
+	$.tag = function(tag, scope) {
+		if (scope) {
+			return scope.getElementsByTagName(tag);
+		} else {
+			return document.getElementsByTagName(tag);
+		}
+	};
+
+	$.classStyle = (function() {
+		if (document.getElementsByClass) {
+			return function(classStyle, scope) {
+				var dom = scope || document;
+				return dom.getElementsByClass(classStyle);
+			};
+		} else if (document.querySelector) {
+			return function(classStyle, scope) {
+				var dom = scope || document;
+				return dom.querySelectorAll('.' + classStyle);
+			};
+		} else return function(classStyle, scope) {
+			var result = [],
+				dom = scope || document,
+				elements = dom.getElementsByTagName('*');
+			for (var i = 0, len = elements.length; i < len; i++) {
+				if ((' ' + elements[i].className + ' ').indexOf(classStyle) !== -1) {
+					result.push(elements[i]);
+				}
+			}
+			return result;
+		};
+	}());
 }(morn));
 'use strict';
 
