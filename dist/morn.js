@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-07-25 */
+/*! morn-js - v0.0.1 - 2014-07-26 */
 'use strict';
 
 var morn = (function(){
@@ -150,6 +150,44 @@ var morn = (function(){
 					}
 				}
 				return this;
+			};
+		}
+	}());
+
+	mornjs.prototype.hasClass = (function () {
+		if (document.documentElement.classList) {
+			return function (classStyle) {
+				if (this.dom.length > 0) {
+					return this.dom[0].classList.contains(classStyle);
+				}
+				return false;
+			};
+		}else{
+			return function (classStyle) {
+				if (this.dom.length > 0) {
+					var c = ' ' + this.dom[0].className + ' ';
+					return (c.indexOf(' ' + classStyle + ' ') !== -1);
+				}
+				return false;
+			};
+		}
+	}());
+
+	mornjs.hasClass = (function () {
+		if (document.documentElement.classList) {
+			return function (ele, classStyle) {
+				if (mornjs.isNode(ele)) {
+					return ele.classList.contains(classStyle);
+				}
+				return false;
+			};
+		}else{
+			return function (ele, classStyle) {
+				if (mornjs.isNode(ele)) {
+					var c = ' ' + ele.className + ' ';
+					return (c.indexOf(' ' + classStyle + ' ') !== -1);
+				}
+				return false;
 			};
 		}
 	}());
@@ -702,8 +740,7 @@ var morn = (function(){
 	function analyse (tokens) {
 		var lastId = 0,
 			result = null,
-			lastResult = null,
-			white = true;
+			lastResult = null;
 
 		for (var i = tokens.length - 1; i >= 0; i--) {
 			if (tokens[i].type === Token.ID) {
@@ -715,7 +752,6 @@ var morn = (function(){
 		for (var len = tokens.length, i = lastId; i < len; i++) {
 			switch(tokens[i].type) {
 				case Token.WHITE: 
-					white = true;
 					break;
 
 				case Token.ID:
@@ -725,10 +761,18 @@ var morn = (function(){
 				case Token.CLASS:
 					if (lastResult !== null) {
 						result = [];
-						for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-							var tmp = $.classStyle(tokens[i].text, lastResult[iter]);
-							for (var index = 0, l = tmp.length; index < l; index++) {
-								result.push(tmp[index]);
+						if (tokens[i - 1].type !== Token.WHITE) {
+							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+								if ($.hasClass(lastResult[iter], tokens[i - 1].text)) {
+									result.push(lastResult[iter]);
+								}
+							}
+						} else {
+							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+								var tmp = $.classStyle(tokens[i].text, lastResult[iter]);
+								for (var index = 0, l = tmp.length; index < l; index++) {
+									result.push(tmp[index]);
+								}
 							}
 						}
 					} else {
@@ -740,12 +784,21 @@ var morn = (function(){
 				case Token.TAG:
 					if (lastResult !== null) {
 						result = [];
-						for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-							var tmp = $.tag(tokens[i].text, lastResult[iter]);
-							for (var index = 0, l = tmp.length; index < l; index++) {
-								result.push(tmp[index]);
+						if (tokens[i - 1].type !== Token.WHITE) {
+							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+								if (lastResult[iter].tagName === tokens[i - 1].text) {
+									result.push(lastResult[iter]);
+								}
+							}
+						} else {
+							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+								var tmp = $.tag(tokens[i].text, lastResult[iter]);
+								for (var index = 0, l = tmp.length; index < l; index++) {
+									result.push(tmp[index]);
+								}
 							}
 						}
+
 					} else {
 						result = $.tag(tokens[i].text);
 					}
@@ -784,6 +837,7 @@ var morn = (function(){
 					}
 
 					lastResult = result;
+					break;
 				default:
 			}
 		}
