@@ -740,7 +740,7 @@ var morn = (function(){
 	*	scan seletor string and match doms
 	*
 	*/
-	$.parseSelector = function (seletor) {
+	$.parseSelector = function (seletor, scope) {
 		var currentToken = null,
 			tokens       = [],
 			c            = '',
@@ -848,25 +848,27 @@ var morn = (function(){
 			}
 		}
 
-		return analyse(tokens);
+		return analyse(tokens, scope);
 	};
 
 
-	function analyse (tokens) {
+	function analyse (tokens, scope) {
 		var lastId = 0,
 			result = null,
-			lastResult = null;
+			lastResult = scope || null;
 
-		for (var i = tokens.length - 1; i >= 0; i--) {
-			if (tokens[i].type === Token.ID) {
-				lastId = i;
-				break;
-			}
-		}
+		// for (var i = tokens.length - 1; i >= 0; i--) {
+		// 	if (tokens[i].type === Token.ID) {
+		// 		lastId = i;
+		// 		break;
+		// 	}
+		// }
 
-		for (var len = tokens.length, i = lastId; i < len; i++) {
+		//for (var len = tokens.length, i = lastId; i < len; i++) {
+		
+		for (var len = tokens.length, i = 0; i < len; i++) {
 			switch(tokens[i].type) {
-				case Token.WHITE: 
+				case Token.WHITE:
 					break;
 
 				case Token.ID:
@@ -899,21 +901,12 @@ var morn = (function(){
 				case Token.TAG:
 					if (lastResult !== null) {
 						result = [];
-						// if (tokens[i - 1].type !== Token.WHITE) {
-						// 	for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-						// 		if (lastResult[iter].tagName === tokens[i - 1].text) {
-						// 			result.push(lastResult[iter]);
-						// 		}
-						// 	}
-						// } else {
-							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-								var tmp = $.tag(tokens[i].text, lastResult[iter]);
-								for (var index = 0, l = tmp.length; index < l; index++) {
-									result.push(tmp[index]);
-								}
+						for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+							var tmp = $.tag(tokens[i].text, lastResult[iter]);
+							for (var index = 0, l = tmp.length; index < l; index++) {
+								result.push(tmp[index]);
 							}
-						// }
-
+						}
 					} else {
 						result = $.tag(tokens[i].text);
 					}
@@ -1004,6 +997,12 @@ var morn = (function(){
 			return result;
 		};
 	}());
+
+	$.prototype.find = function(selector) {
+		if (selector) {
+			return new $.prototype.init($.parseSelector(selector), this.dom);
+		}
+	};
 
 	$.prototype.get = function(index) {
 		return this.dom[index];
