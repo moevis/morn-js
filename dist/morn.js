@@ -1034,57 +1034,88 @@ var morn = (function(){
 		REJECTED = 1,
 		WAITING  = 2;
 
-	function emptyFunc() {
-
-	}
+	function emptyFunc() { }
 
 	$.promise = function() {
 		return new $.promise.prototype.init();
 	};
 
 	$.promise.prototype.init = function() {
+		this.status = WAITING;
+		this.error = undefined;
 		this.callbacks = [];
-		this.next = undefined;
+		this.catch = undefined;
+		this.result = undefined;
 	};
 
 	$.promise.prototype.init.prototype = $.promise.prototype;
 
-	$.promise.prototype.then = function(func) {
-		if (func.constructor === $.promise) {
-			this.next = func;
-			return func;
-		} else {
-			this.callbacks.push(func);
-			return this;
+	$.promise.prototype.then = function(success, failed) {
+		this.callbacks.push(function (value) {
+			if (this.status === WAITING) {
+				try {
+					return success(value);
+				} catch (e) {
+					this.status = RESOLVED;
+					if (failed) {
+						return failed(e);
+					}
+				}
+			} else if (this.status === REJECTED) {
+				if (failed) {
+					failed(this.error);
+				}
+			}
+		});
+
+		if (this.status === RESOLVED) {
+			success(this.result);
+		} else if (this.status === REJECTED) {
+			if (failed) {
+				failed(this.error);
+			}
 		}
+		return this;
 	};
 
-	$.promise.prototype.resolve = function(value) {
-		this._complete(value);
+	$.promise.prototype.resolve = function(result) {
+		this.result = result;
+		this._complete(result);
+		return this;
 	};
 
-	$.promise.prototype.reject = function() {
+	$.promise.prototype.reject = function(err) {
+		this.status = REJECTED;
+		this.error = err;
+		this._complete(null);
+		return this;
 	};
 
-	$.promise.prototype._complete = function(value) {
-		var i = 0, func;
+	$.promise.prototype._complete = function(result) {
+		var i = 0, func, p;
+		if (this.status === REJECTED) {
+
+		}
 		while (func = this.callbacks[i++]) {
-			value = func(value);
+			if (this.status === WAITING) {
+				try {
+					p = func.call(this, result);
+					if (p !== undefined && p.constructor === $.promise) {
+						p.callbacks = this.callbacks.slice(i);
+						p.result = this.result;
+						this.callbacks.length = 0;
+					}
+				} catch(e) {
+					this.error = e;
+					this.status = REJECTED;
+					func.call(this, e);
+					break;
+				}
+			}
 		}
-		// if (this.next !== undefined) {
-		// 	this.next.resolve();
-		// };
+		this.status = RESOLVED;
 	};
 }(morn));
-function delay(ms) {
-	var p = morn.promise();
-	setTimeout(function(){
-		p.resolve();
-	}, ms);
-	return p;
-}
-
-
 'use strict';
 
 (function($){
