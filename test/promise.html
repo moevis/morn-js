@@ -89,6 +89,7 @@
 
 	delay1(1000).then(success1).then(function(){return delay2(2000);}).then(success2).then(success2);
 	delay1(1000).then(success1,failed).then(err,failed);
+	delay1(1000).then(success1,failed).catch(success1);
   </script>
 </body>
 </html>

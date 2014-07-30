@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-07-29 */
+/*! morn-js - v0.0.1 - 2014-07-30 */
 'use strict';
 
 var morn = (function(){
@@ -1032,7 +1032,7 @@ var morn = (function(){
 (function($) {
 	var RESOLVED = 0,
 		REJECTED = 1,
-		WAITING  = 2;
+		PENDING  = 2;
 
 	function emptyFunc() { }
 
@@ -1041,10 +1041,10 @@ var morn = (function(){
 	};
 
 	$.promise.prototype.init = function() {
-		this.status = WAITING;
+		this.status = PENDING;
 		this.error = undefined;
 		this.callbacks = [];
-		this.catch = undefined;
+		this.catchs = [];
 		this.result = undefined;
 	};
 
@@ -1052,14 +1052,19 @@ var morn = (function(){
 
 	$.promise.prototype.then = function(success, failed) {
 		this.callbacks.push(function (value) {
-			if (this.status === WAITING) {
+			if (this.status === PENDING) {
 				try {
 					return success(value);
 				} catch (e) {
-					this.status = RESOLVED;
+					this.error = e;
+					this.status = REJECTED;
 					if (failed) {
-						return failed(e);
+						failed(e);
 					}
+					for (var j = 0, len = this.catchs.length; j < len; j++) {
+						this.catchs[j].call(this, e);
+					}
+					return;
 				}
 			} else if (this.status === REJECTED) {
 				if (failed) {
@@ -1091,28 +1096,27 @@ var morn = (function(){
 		return this;
 	};
 
+	$.promise.prototype.catch = function(func) {
+		if (this.status === REJECTED) {
+			func.call(this, this.error);
+		} else {
+			this.catchs.push(func);
+		}
+	};
+
 	$.promise.prototype._complete = function(result) {
 		var i = 0, func, p;
-		if (this.status === REJECTED) {
-
-		}
 		while (func = this.callbacks[i++]) {
-			if (this.status === WAITING) {
-				try {
-					p = func.call(this, result);
-					if (p !== undefined && p.constructor === $.promise) {
-						p.callbacks = this.callbacks.slice(i);
-						p.result = this.result;
-						this.callbacks.length = 0;
-					}
-				} catch(e) {
-					this.error = e;
-					this.status = REJECTED;
-					func.call(this, e);
-					break;
+			if (this.status === PENDING) {
+				p = func.call(this, result);
+				if (p !== undefined && p.constructor === $.promise) {
+					p.callbacks = this.callbacks.slice(i);
+					p.result = this.result;
+					this.callbacks.length = 0;
 				}
 			}
 		}
+		this.catchs.length = 0;
 		this.status = RESOLVED;
 	};
 }(morn));
