@@ -26,6 +26,15 @@ It has some useful functions. For example:
   * morn('dom').removeData()   // remove all data
 * promise for async function
   * morn.promise().then(success, failed).reject(value).catch(handleError);
+* matrix transform
+  * morn('dom').matrix()   //return a tranform object. get matrix currently;
+  * morn('dom').matrix().rotate(30).end()   // use end() to apply transform, rotate 30deg.
+  * morn('dom').matrix().rotate(30).translate(10, 50).scale(0.5).end()   //chain the transforms functions
+* modules loader
+  * morn.define(itself_name, ['dependencies'], function(){}); // 
+  * morn.define(['dependencies'], function(){});  // anonymous function and has dependencies 
+  * morn.define(itself_name, function(){}); // no dependencies
+  * morn.define(function(){});  // no dependencies and anonymous
 
 and even more.
 
