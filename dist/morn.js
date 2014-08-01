@@ -458,6 +458,56 @@ var morn = (function(){
 		return this;
 	};
 
+	transform.prototype.scaleX = function(ratio){
+		var tMatrix = [
+				ratio, 0, 0,
+				0, 1, 0,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.scaleY = function(ratio){
+		var tMatrix = [
+				1, 0, 0,
+				0, ratio, 0,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.translate = function(x ,y){
+		var tMatrix = [
+				1, 0, x,
+				0, 1, y,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.translateX = function(x){
+		var tMatrix = [
+				1, 0, x,
+				0, 1, 0,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.translateY = function(y){
+		var tMatrix = [
+				1, 0, 0,
+				0, 1, y,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
 	transform.prototype.end = function() {
 		this.element.dom[0].style.transform = 'matrix(' + this.matrix[0].toFixed(9) + ',' + this.matrix[3].toFixed(9) + ',' + this.matrix[1].toFixed(9) + ',' + this.matrix[4].toFixed(9) + ',' + this.matrix[2].toFixed(9) + ',' + this.matrix[5].toFixed(9) + ')';
 		return this.element;
