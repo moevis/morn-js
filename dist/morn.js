@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-07-30 */
+/*! morn-js - v0.0.1 - 2014-08-01 */
 'use strict';
 
 var morn = (function(){
@@ -448,8 +448,18 @@ var morn = (function(){
 		return this;
 	};
 
+	transform.prototype.scale = function(ratio){
+		var tMatrix = [
+				ratio, 0, 0,
+				0, ratio, 0,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
 	transform.prototype.end = function() {
-		this.element.dom[0].style.transform = 'matrix(' + this.matrix[0] + ',' + this.matrix[3] + ',' + this.matrix[1] + ',' + this.matrix[4] + ',' + this.matrix[2] + ',' + this.matrix[5] + ')';
+		this.element.dom[0].style.transform = 'matrix(' + this.matrix[0].toFixed(9) + ',' + this.matrix[3].toFixed(9) + ',' + this.matrix[1].toFixed(9) + ',' + this.matrix[4].toFixed(9) + ',' + this.matrix[2].toFixed(9) + ',' + this.matrix[5].toFixed(9) + ')';
 		return this.element;
 	};
 
@@ -464,10 +474,6 @@ var morn = (function(){
 		}
 		return result;
 	}
-			var degree = 3.1415926 * 30 / 180,
-			sin = Math.sin(degree),
-			cos = Math.cos(degree);
-	console.log(multiplyBy([1, 0, 0, 0, 1, 0, 0, 0, 1], [cos, -sin, 0, sin, cos , 0, 0 , 0, 1]));
 
 	$.prototype.matrix = function() {
 		var m = this.getComputedStyle().transform,
@@ -607,6 +613,51 @@ var morn = (function(){
 		}
 	}());
 }(morn));
+'use strict';
+
+var define = (function(){
+	var namespaces = {},
+		pending = [],
+		uid = 0;
+
+	function _load(ns, dependsOn, func){
+		var loadNow = true;
+		dependsOn.forEach(function(e){
+			if (namespaces[e] === undefined) {
+				loadNow = false;
+			} else {
+				if (namespaces[e].load === false) {
+					if (!_load(e, e.depends, e.func)) {
+						loadNow = false;
+					}
+				}
+			}
+		});
+		if (loadNow) {
+			namespaces[ns].load = true;
+			func();
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	function guid() {
+		return uid++;
+	}
+
+	return function(ns, dependsOn, func) {
+		if (ns === null) {
+			ns = guid();
+		}
+		namespaces[ns] = {
+			load: false,
+			depends: dependsOn,
+			func: func
+		};
+		_load(ns, dependsOn, func);
+	};
+}());
 'use strict';
 
 (function($){
