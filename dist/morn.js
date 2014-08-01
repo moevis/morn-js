@@ -1,22 +1,126 @@
-/*! morn-js - v0.0.1 - 2014-08-01 */
+/*! morn-js - v0.0.1 - 2014-08-02 */
 'use strict';
 
-var morn = (function(){
+var define = (function(){
+	var namespaces = {},
+		pending = {},
+		uid = 0;
 
-	var mornjs = function(selector, context) {
+	function _load(ns, dependsOn, func){
+		if (namespaces[ns] !== undefined && namespaces[ns].load === true) {
+			return true;
+		}
+		var loadNow = true;
+		dependsOn.forEach(function(e){
+			if (namespaces[e] === undefined) {
+				loadNow = false;
+			} else {
+				if (namespaces[e].load === false) {
+					if (!_load(e, namespaces[e].depends, namespaces[e].func)) {
+						loadNow = false;
+					}
+				}
+			}
+		});
+		if (loadNow) {
+			var n;
+			func(morn);
+			namespaces[ns].load = true;
+			delete pending[ns];
+			for (n in pending) {
+				_load(n, namespaces[n].depends, namespaces[n].func);
+			}
+			return true;
+		} else {
+			pending[ns] = true;
+			return false;
+		}
+	}
+
+	function guid() {
+		return uid++;
+	}
+
+	return function() {
+		if (arguments.length === 1) {
+			arguments[0](morn);
+		} else if (arguments.length === 2){
+			var ns;
+			if (typeof arguments[0] === 'string') {
+				ns = arguments[0];
+				namespaces[ns] = {
+					load: false,
+					depends: [],
+					func: arguments[1]
+				};
+				_load(ns, [], arguments[1]);
+			} else {
+				ns = guid();
+				namespaces[ns] = {
+					load: false,
+					depends: arguments[0],
+					func: arguments[1]
+				};
+				_load(ns, arguments[0], arguments[1]);
+			}
+		} else if (arguments.length === 3){
+			var ns = arguments[0];
+			namespaces[ns] = {
+				load: false,
+				depends: arguments[1],
+				func: arguments[2]
+			};
+			_load(ns, arguments[1], arguments[2]);
+		}
+
+	};
+}());
+'use strict';
+/** 
+ * This page of code is from the page: http://stackoverflow.com/questions/5916900/detect-version-of-browser
+ * To get browser and version
+ */
+
+define('browser', ['core'], function ($) {
+	$.browser = (function(){
+		var ua = navigator.userAgent,tem,M=ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+		if(/trident/i.test(M[1])){
+			tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
+			return 'IE ' + (tem[1] || '');
+		}
+		if(M[1] === 'Chrome'){
+			tem=ua.match(/\bOPR\/(\d+)/);
+			if(tem !== null) {
+				return 'Opera '+tem[1];
+			}
+		}
+		M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
+		if((tem = ua.match(/version\/(\d+)/i)) !== null) {M.splice(1,1,tem[1]);}
+		return {
+			browser:M[0], version: M[1]
+		};
+	}());
+});
+'use strict';
+
+var morn;
+
+define('core', function(){
+
+	morn = function(selector, context) {
 		if (selector !== undefined ) {
 			if (typeof selector === 'string') {
-				return new mornjs.prototype.init(mornjs.parseSelector(selector));
-			} else if (mornjs.isNode(selector)) {
-				return new mornjs.prototype.init(selector);
-			} else if (selector.constructor === mornjs){
+				return new morn.prototype.init(morn.parseSelector(selector));
+			} else if (morn.isNode(selector)) {
+				return new morn.prototype.init(selector);
+			} else if (selector.constructor === morn){
 				return selector;
 			}
 		}
 
 	};
 
-	mornjs.prototype.init = mornjs.widget = function(dom) {
+	morn.prototype.init = morn.widget = function(dom) {
 		if (dom.length === undefined || dom === window) {
 			this.dom = [dom];
 		} else {
@@ -25,9 +129,9 @@ var morn = (function(){
 		return this;
 	};
 
-	mornjs.prototype.init.prototype = mornjs.prototype;
+	morn.prototype.init.prototype = morn.prototype;
 
-	mornjs.prototype.addEventHandler = (function () {
+	morn.prototype.addEventHandler = (function () {
 		if (window.addEventListener) {
 			return function (ev, fn) {
 				for (var i = this.dom.length - 1; i >= 0; i--) {
@@ -52,7 +156,7 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.addEventHandler = (function () {
+	morn.addEventHandler = (function () {
 		if (window.addEventListener) {
 			return function (el, ev, fn) {
 				if (el.length) {
@@ -86,7 +190,7 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.prototype.removeEventHandler = (function () {
+	morn.prototype.removeEventHandler = (function () {
 		if (window.removeEventListener) {
 			return function (ev, fn) {
 				for (var i = this.dom.length - 1; i >= 0; i--) {
@@ -111,7 +215,7 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.removeEventHandler = (function () {
+	morn.removeEventHandler = (function () {
 		if (window.removeEventListener) {
 			return function (el, ev, fn) {
 				el.removeEventListener(ev, fn);
@@ -133,7 +237,7 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.prototype.addClass = (function () {
+	morn.prototype.addClass = (function () {
 		if (document.documentElement.classList) {
 			return function (classStyle) {
 				for (var i = this.dom.length - 1; i >= 0; i--) {
@@ -154,7 +258,7 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.prototype.hasClass = (function () {
+	morn.prototype.hasClass = (function () {
 		if (document.documentElement.classList) {
 			return function (classStyle) {
 				if (this.dom.length > 0) {
@@ -173,17 +277,17 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.hasClass = (function () {
+	morn.hasClass = (function () {
 		if (document.documentElement.classList) {
 			return function (ele, classStyle) {
-				if (mornjs.isNode(ele)) {
+				if (morn.isNode(ele)) {
 					return ele.classList.contains(classStyle);
 				}
 				return false;
 			};
 		}else{
 			return function (ele, classStyle) {
-				if (mornjs.isNode(ele)) {
+				if (morn.isNode(ele)) {
 					var c = ' ' + ele.className + ' ';
 					return (c.indexOf(' ' + classStyle + ' ') !== -1);
 				}
@@ -192,7 +296,7 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.addClass = (function () {
+	morn.addClass = (function () {
 		if (document.documentElement.classList) {
 			return function (el, classStyle) {
 				if (el.length) {
@@ -222,7 +326,7 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.prototype.removeClass = (function () {
+	morn.prototype.removeClass = (function () {
 		if (document.documentElement.classList) {
 			return function (classStyle) {
 				for (var i = this.dom.length - 1; i >= 0; i--) {
@@ -240,7 +344,7 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.removeClass = (function () {
+	morn.removeClass = (function () {
 		if (document.documentElement.classList) {
 			return function (el, classStyle) {
 				if (el.length) {
@@ -264,7 +368,7 @@ var morn = (function(){
 		}
 	}());
 
-	mornjs.prototype.getComputedStyle = function(name) {
+	morn.prototype.getComputedStyle = function(name) {
 		if (this.dom.length > 0) {
 			if (this.dom[0].style[name] && name !== undefined) {
 				return this.dom[0].style[name];
@@ -285,7 +389,7 @@ var morn = (function(){
 		}
 	};
 
-	mornjs.getComputedStyle = function( elem, name ) {
+	morn.getComputedStyle = function( elem, name ) {
 		if (elem.style[name] && name !== undefined) {
 			return elem.style[name];
 		} else if (elem.currentStyle) {
@@ -304,7 +408,7 @@ var morn = (function(){
 		}
 	};
 
-	mornjs.prototype.width = function(width) {
+	morn.prototype.width = function(width) {
 		if (width === undefined) {
 			var rect;
 			if (this.dom.length > 0) {
@@ -314,7 +418,7 @@ var morn = (function(){
 		}
 	}
 
-	mornjs.prototype.height = function(height) {
+	morn.prototype.height = function(height) {
 		if (height === undefined) {
 			var rect;
 			if (this.dom.length !== 0) {
@@ -324,7 +428,7 @@ var morn = (function(){
 		}
 	}
 
-	mornjs.prototype.rect = function() {
+	morn.prototype.rect = function() {
 		// if (width === undefined) {
 			var rect;
 			if (this.dom.length !== 0) {
@@ -334,7 +438,7 @@ var morn = (function(){
 		// }
 	}
 
-	mornjs.createDom = function(str){
+	morn.createDom = function(str){
 		var tmpNodes = [],
 			tmp = document.createElement('div');
 		tmp.innerHTML = str;
@@ -344,7 +448,7 @@ var morn = (function(){
 		return tmpNodes;
 	};
 
-	mornjs.prototype.append = function(children) {
+	morn.prototype.append = function(children) {
 		var dom;
 		if (this.dom.length > 0) {
 			dom = this.dom[0];
@@ -362,7 +466,7 @@ var morn = (function(){
 		return this;
 	};
 
-	mornjs.prototype.prepend = function(children) {
+	morn.prototype.prepend = function(children) {
 		var dom;
 		if (this.dom.length > 0) {
 			dom = this.dom[0];
@@ -381,176 +485,10 @@ var morn = (function(){
 		return this;
 	};
 
-	return mornjs;
-}());
-'use strict';
-(function($){
-
-	$.isNode = function(o){
-		return (
-			typeof Node === "object" ? o instanceof Node :
-			o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
-		);
-	};
-
-	$.isElement = function(o){
-		return (
-			typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
-			o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string"
-		);
-	};
-
-}(morn));
-'use strict';
-/** 
- * This page of code is from the page: http://stackoverflow.com/questions/5916900/detect-version-of-browser
- * To get browser and version
- */
-
-(function ($) {
-	$.browser = (function(){
-		var ua = navigator.userAgent,tem,M=ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
-		if(/trident/i.test(M[1])){
-			tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
-			return 'IE ' + (tem[1] || '');
-		}
-		if(M[1] === 'Chrome'){
-			tem=ua.match(/\bOPR\/(\d+)/);
-			if(tem !== null) {
-				return 'Opera '+tem[1];
-			}
-		}
-		M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
-		if((tem = ua.match(/version\/(\d+)/i)) !== null) {M.splice(1,1,tem[1]);}
-		return {
-			browser:M[0], version: M[1]
-		};
-	}());
-}(morn));
+});
 'use strict';
 
-(function($){
-	var transform = function(element, matrix) {
-		this.element = element;
-		this.matrix = matrix;
-	};
-
-	transform.prototype.rotate = function(degree){
-		var degree = 3.1415926 * degree / 180,
-			sin = Math.sin(degree),
-			cos = Math.cos(degree),
-			tMatrix = [
-						cos, -sin, 0,
-						sin, cos , 0,
-						0 , 0, 1
-					];
-		this.matrix = multiplyBy(this.matrix, tMatrix);
-		return this;
-	};
-
-	transform.prototype.scale = function(ratio){
-		var tMatrix = [
-				ratio, 0, 0,
-				0, ratio, 0,
-				0 , 0, 1
-			];
-		this.matrix = multiplyBy(this.matrix, tMatrix);
-		return this;
-	};
-
-	transform.prototype.scaleX = function(ratio){
-		var tMatrix = [
-				ratio, 0, 0,
-				0, 1, 0,
-				0 , 0, 1
-			];
-		this.matrix = multiplyBy(this.matrix, tMatrix);
-		return this;
-	};
-
-	transform.prototype.scaleY = function(ratio){
-		var tMatrix = [
-				1, 0, 0,
-				0, ratio, 0,
-				0 , 0, 1
-			];
-		this.matrix = multiplyBy(this.matrix, tMatrix);
-		return this;
-	};
-
-	transform.prototype.translate = function(x ,y){
-		var tMatrix = [
-				1, 0, x,
-				0, 1, y,
-				0 , 0, 1
-			];
-		this.matrix = multiplyBy(this.matrix, tMatrix);
-		return this;
-	};
-
-	transform.prototype.translateX = function(x){
-		var tMatrix = [
-				1, 0, x,
-				0, 1, 0,
-				0 , 0, 1
-			];
-		this.matrix = multiplyBy(this.matrix, tMatrix);
-		return this;
-	};
-
-	transform.prototype.translateY = function(y){
-		var tMatrix = [
-				1, 0, 0,
-				0, 1, y,
-				0 , 0, 1
-			];
-		this.matrix = multiplyBy(this.matrix, tMatrix);
-		return this;
-	};
-
-	transform.prototype.end = function() {
-		this.element.dom[0].style.transform = 'matrix(' + this.matrix[0].toFixed(9) + ',' + this.matrix[3].toFixed(9) + ',' + this.matrix[1].toFixed(9) + ',' + this.matrix[4].toFixed(9) + ',' + this.matrix[2].toFixed(9) + ',' + this.matrix[5].toFixed(9) + ')';
-		return this.element;
-	};
-
-	function multiplyBy(origin, matrix) {
-		var i, j, result = new Array(9);
-		for (i = 0; i < 3; i++) {
-			for (j = 0; j< 3; j++) {
-				result[3 * i + j] = origin[3 * i + 0] * matrix[j + 0] +
-									origin[3 * i + 1] * matrix[j + 3] +
-									origin[3 * i + 2] * matrix[j + 6];
-			}
-		}
-		return result;
-	}
-
-	$.prototype.matrix = function() {
-		var m = this.getComputedStyle().transform,
-			matrix;
-		if (m === null || m === 'none') {
-			matrix = [
-						1, 0, 0,
-						0, 1, 0,
-						0, 0, 1
-					];
-		} else {
-			var reg = /[-+]?[0-9]*\.?[0-9]+/g,
-				result,
-				mx = [];
-			while ((result = reg.exec(m)) !== null) {
-				mx.push(parseFloat(result[0]));
-			}
-			matrix = [mx[0], mx[2], mx[4], mx[1], mx[3], mx[5], 0, 0, 1];
-		}
-		return new transform(this, matrix);
-	};
-
-
-}(morn));
-'use strict';
-
-(function($) {
+define('data', ['core'], function($) {
 	var cacheData = {
 
 	};
@@ -662,55 +600,10 @@ var morn = (function(){
 			};
 		}
 	}());
-}(morn));
+});
 'use strict';
 
-var define = (function(){
-	var namespaces = {},
-		pending = [],
-		uid = 0;
-
-	function _load(ns, dependsOn, func){
-		var loadNow = true;
-		dependsOn.forEach(function(e){
-			if (namespaces[e] === undefined) {
-				loadNow = false;
-			} else {
-				if (namespaces[e].load === false) {
-					if (!_load(e, e.depends, e.func)) {
-						loadNow = false;
-					}
-				}
-			}
-		});
-		if (loadNow) {
-			namespaces[ns].load = true;
-			func();
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	function guid() {
-		return uid++;
-	}
-
-	return function(ns, dependsOn, func) {
-		if (ns === null) {
-			ns = guid();
-		}
-		namespaces[ns] = {
-			load: false,
-			depends: dependsOn,
-			func: func
-		};
-		_load(ns, dependsOn, func);
-	};
-}());
-'use strict';
-
-(function($){
+define('dom.ready', ['core'], function($){
 	var documentReady = false,
 		startup = [];
 	
@@ -747,10 +640,10 @@ var define = (function(){
 		}
 	}());
 
-}(morn));
+});
 'use strict';
 
-(function($) {
+define('event', ['core'], function($) {
 	
 	$.event = function(e) {
 		return $.event.prototype.init(e || window.event);
@@ -809,10 +702,10 @@ var define = (function(){
 			return -1;
 		}
 	};
-}(morn));
+});
 'use strict';
 
-(function($) {
+define('lexer', ['core', 'selector'], function($) {
 
     function Stream(text) {
         this.number = 0;
@@ -1127,10 +1020,10 @@ var define = (function(){
 		return result;
 
 	}
-}(morn));
+});
 'use strict';
 
-(function($) {
+define('promise', ['core'], function($) {
 	var RESOLVED = 0,
 		REJECTED = 1,
 		PENDING  = 2;
@@ -1220,10 +1113,10 @@ var define = (function(){
 		this.catchs.length = 0;
 		this.status = RESOLVED;
 	};
-}(morn));
+});
 'use strict';
 
-(function($){
+define('selector', ['core'], function($){
 	// get element
 	$.id = function(id, scope) {
 		if (scope) {
@@ -1284,10 +1177,148 @@ var define = (function(){
 	$.prototype.parent = function() {
 		return $(this.dom[0].parentElement);
 	};
-}(morn));
+});
 'use strict';
 
-(function($) {
+define('transform', ['core'], function($){
+	var transform = function(element, matrix) {
+		this.element = element;
+		this.matrix = matrix;
+	};
+
+	transform.prototype.rotate = function(degree){
+		var degree = 3.1415926 * degree / 180,
+			sin = Math.sin(degree),
+			cos = Math.cos(degree),
+			tMatrix = [
+						cos, -sin, 0,
+						sin, cos , 0,
+						0 , 0, 1
+					];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.scale = function(ratio){
+		var tMatrix = [
+				ratio, 0, 0,
+				0, ratio, 0,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.scaleX = function(ratio){
+		var tMatrix = [
+				ratio, 0, 0,
+				0, 1, 0,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.scaleY = function(ratio){
+		var tMatrix = [
+				1, 0, 0,
+				0, ratio, 0,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.translate = function(x ,y){
+		var tMatrix = [
+				1, 0, x,
+				0, 1, y,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.translateX = function(x){
+		var tMatrix = [
+				1, 0, x,
+				0, 1, 0,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.translateY = function(y){
+		var tMatrix = [
+				1, 0, 0,
+				0, 1, y,
+				0 , 0, 1
+			];
+		this.matrix = multiplyBy(this.matrix, tMatrix);
+		return this;
+	};
+
+	transform.prototype.end = function() {
+		this.element.dom[0].style.transform = 'matrix(' + this.matrix[0].toFixed(9) + ',' + this.matrix[3].toFixed(9) + ',' + this.matrix[1].toFixed(9) + ',' + this.matrix[4].toFixed(9) + ',' + this.matrix[2].toFixed(9) + ',' + this.matrix[5].toFixed(9) + ')';
+		return this.element;
+	};
+
+	function multiplyBy(origin, matrix) {
+		var i, j, result = new Array(9);
+		for (i = 0; i < 3; i++) {
+			for (j = 0; j< 3; j++) {
+				result[3 * i + j] = origin[3 * i + 0] * matrix[j + 0] +
+									origin[3 * i + 1] * matrix[j + 3] +
+									origin[3 * i + 2] * matrix[j + 6];
+			}
+		}
+		return result;
+	}
+
+	$.prototype.matrix = function() {
+		var m = this.getComputedStyle().transform,
+			matrix;
+		if (m === null || m === 'none') {
+			matrix = [
+						1, 0, 0,
+						0, 1, 0,
+						0, 0, 1
+					];
+		} else {
+			var reg = /[-+]?[0-9]*\.?[0-9]+/g,
+				result,
+				mx = [];
+			while ((result = reg.exec(m)) !== null) {
+				mx.push(parseFloat(result[0]));
+			}
+			matrix = [mx[0], mx[2], mx[4], mx[1], mx[3], mx[5], 0, 0, 1];
+		}
+		return new transform(this, matrix);
+	};
+
+});
+'use strict';
+define('type', ['core'], function($){
+
+	$.isNode = function(o){
+		return (
+			typeof Node === "object" ? o instanceof Node :
+			o && typeof o === "object" && typeof o.nodeType === "number" && typeof o.nodeName==="string"
+		);
+	};
+
+	$.isElement = function(o){
+		return (
+			typeof HTMLElement === "object" ? o instanceof HTMLElement : //DOM2
+			o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName==="string"
+		);
+	};
+
+});
+'use strict';
+
+define('widget.dragger', ['core', 'lexer'], function($) {
 	/*
 		opt.maxHeight
 		opt.minHeight
@@ -1421,10 +1452,10 @@ var define = (function(){
 		// body...
 	};
 
-}(morn));
+});
 'use strict';
 
-(function($) {
+define('widget.sticky', ['core'], function($) {
 	$.widget.prototype.sticky = function(opt) {
 		var option = opt || {};
 			option.topOffset = option.scrollTop || 0;
@@ -1449,4 +1480,4 @@ var define = (function(){
 			}
 		});
 	};
-}(morn));
+});
