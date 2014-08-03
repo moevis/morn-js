@@ -26,6 +26,10 @@ It has some useful functions. For example:
   * morn('dom').removeData()   // remove all data
 * promise for async function
   * morn.promise().then(success, failed).reject(value).catch(handleError);
+* ajax method
+  * morn.get(url, success, failed);
+  * morn.post(url, dataObject, success, failed);
+  * both of above will return a promise.
 * matrix transform
   * morn('dom').matrix()   //return a tranform object. get matrix currently;
   * morn('dom').matrix().rotate(30).end()   // use end() to apply transform, rotate 30deg.
