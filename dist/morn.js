@@ -1067,7 +1067,6 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 					} else {
 						result = $.classStyle(tokens[i].text);
 					}
-					lastResult = result;
 					break;
 
 				case Token.TAG:
@@ -1082,7 +1081,6 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 					} else {
 						result = $.tag(tokens[i].text);
 					}
-					lastResult = result;
 					break;
 
 				case Token.FAKE:
@@ -1115,11 +1113,11 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 					} else {
 						result = [];
 					}
-
-					lastResult = result;
 					break;
 				default:
 			}
+
+			lastResult = result;
 		}
 
 		return result;
