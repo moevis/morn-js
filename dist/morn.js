@@ -699,6 +699,12 @@ define('dom', ['core'], function($) {
 
 		return this;
 	};
+
+	$.prototype.remove = function() {
+		for (var i = 0; i < this.dom.length; i++) {
+			this.dom[i].parentElement.removeChild(this.dom[i]);
+		}
+	};
 });
 'use strict';
 
