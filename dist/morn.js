@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-05 */
+/*! morn-js - v0.0.1 - 2014-08-06 */
 'use strict';
 
 var define = (function(){
@@ -870,6 +870,82 @@ define('event', ['core'], function($) {
 			return -1;
 		}
 	};
+
+	$.prototype.click = function(func) {
+		$.addEventHandler('click', func);
+		return this;
+	};
+
+	$.prototype.mousemove = function(func) {
+		$.addEventHandler('mousemove', func);
+		return this;
+	};
+
+	$.prototype.mousedown = function(func) {
+		$.addEventHandler('mousedown', func);
+		return this;
+	};
+
+	$.prototype.mouseup = function(func) {
+		$.addEventHandler('mouseup', func);
+		return this;
+	};
+
+	$.prototype.mouseover = function(func) {
+		$.addEventHandler('mouseover', func);
+		return this;
+	};
+
+	$.prototype.mouseout = function(func) {
+		$.addEventHandler('mouseout', func);
+		return this;
+	};
+
+	$.prototype.dblclick = function(func) {
+		$.addEventHandler('dblclick', func);
+		return this;
+	};
+
+	$.prototype.load = function(func) {
+		$.addEventHandler('load', func);
+		return this;
+	};
+
+	$.prototype.error = function(func) {
+		$.addEventHandler('error', func);
+		return this;
+	};
+
+	$.prototype.unload = function(func) {
+		$.addEventHandler('unload', func);
+		return this;
+	};
+
+	$.prototype.resize = function(func) {
+		$.addEventHandler('resize', func);
+		return this;
+	};
+
+	$.prototype.keydown = function(func) {
+		$.addEventHandler('keydown', func);
+		return this;
+	};
+
+	$.prototype.keyup = function(func) {
+		$.addEventHandler('keyup', func);
+		return this;
+	};
+
+	$.prototype.keypress = function(func) {
+		$.addEventHandler('keypress', func);
+		return this;
+	};
+
+	$.prototype.submit = function(func) {
+		$.addEventHandler('submit', func);
+		return this;
+	};
+
 });
 'use strict';
 
