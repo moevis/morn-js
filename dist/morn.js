@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-06 */
+/*! morn-js - v0.0.1 - 2014-08-07 */
 'use strict';
 
 var define = (function(){
@@ -168,7 +168,7 @@ define('animate', ['core', 'promise', 'dom'], function($) {
 				}
 			}, 17);
 		return promise;
-	}
+	};
 });
 'use strict';
 /** 
@@ -192,7 +192,7 @@ define('browser', ['core'], function ($) {
 		M = M[2]? [M[1], M[2]]: [navigator.appName, navigator.appVersion, '-?'];
 		if((tem = ua.match(/version\/(\d+)/i)) !== null) {M.splice(1,1,tem[1]);}
 		return {
-			browser:M[0], version: M[1]
+			browser:M[0], version: parseInt(M[1])
 		};
 	}());
 });
@@ -450,7 +450,7 @@ define('data', ['core'], function($) {
 });
 'use strict';
 
-define('dom', ['core'], function($) {
+define('dom', ['core', 'selector'], function($) {
 
 	$.prototype.addClass = (function () {
 		if (document.documentElement.classList) {
@@ -768,6 +768,44 @@ define('dom', ['core'], function($) {
 			this.dom[i].parentElement.removeChild(this.dom[i]);
 		}
 	};
+
+	$.prototype.count = function() {
+		return this.dom.length;
+	};
+
+	$.prototype.children = function(i) {
+		if (i !== undefined) {
+			if (typeof i === 'string') {
+				return $.parseSelecor(i, this.dom[0]);
+			} else {
+				return $(this.get(i));
+			}
+		} else {
+			if (this.dom[0] !== undefined) {
+				return $(this.dom[0].children);
+			} else {
+				return undefined;
+			}
+		}
+	};
+
+	$.prototype.get = function(index) {
+		return this.dom[index];
+	};
+
+	$.prototype.el = function(index) {
+		return $(this.dom[index]);
+	};
+
+	$.prototype.forEach = function(func) {
+		for (var i = 0, len = this.dom.length; i < len; i++) {
+			func.call(this.dom[i], this.dom[i], i);
+		}
+	};
+
+	$.prototype.parent = function() {
+		return $(this.dom[0].parentElement);
+	};
 });
 'use strict';
 
@@ -872,104 +910,146 @@ define('event', ['core', 'browser'], function($) {
 	};
 
 	$.prototype.click = function(func) {
-		$.addEventHandler('click', func);
+		this.addEventHandler('click', func);
+		return this;
+	};
+
+	$.prototype.contextmenu = function(func) {
+		this.addEventHandler('contextmenu', func);
 		return this;
 	};
 
 	$.prototype.mousemove = function(func) {
-		$.addEventHandler('mousemove', func);
+		this.addEventHandler('mousemove', func);
 		return this;
 	};
 
 	$.prototype.mousedown = function(func) {
-		$.addEventHandler('mousedown', func);
+		this.addEventHandler('mousedown', func);
 		return this;
 	};
 
 	$.prototype.mouseup = function(func) {
-		$.addEventHandler('mouseup', func);
+		this.addEventHandler('mouseup', func);
 		return this;
 	};
 
 	$.prototype.mouseover = function(func) {
-		$.addEventHandler('mouseover', func);
+		this.addEventHandler('mouseover', func);
 		return this;
 	};
 
 	$.prototype.mouseout = function(func) {
-		$.addEventHandler('mouseout', func);
+		this.addEventHandler('mouseout', func);
 		return this;
 	};
 
 	$.prototype.mousewheel = function(func) {
-		$.addEventHandler('mousewheel', func);
+		this.addEventHandler('mousewheel', func);
 		return this;
 	};
 
 	$.prototype.dblclick = function(func) {
-		$.addEventHandler('dblclick', func);
+		this.addEventHandler('dblclick', func);
 		return this;
 	};
 
 	$.prototype.load = function(func) {
-		$.addEventHandler('load', func);
+		this.addEventHandler('load', func);
 		return this;
 	};
 
 	$.prototype.error = function(func) {
-		$.addEventHandler('error', func);
+		this.addEventHandler('error', func);
 		return this;
 	};
 
 	$.prototype.unload = function(func) {
-		$.addEventHandler('unload', func);
+		this.addEventHandler('unload', func);
 		return this;
 	};
 
 	$.prototype.resize = function(func) {
-		$.addEventHandler('resize', func);
+		this.addEventHandler('resize', func);
 		return this;
 	};
 
 	$.prototype.keydown = function(func) {
-		$.addEventHandler('keydown', func);
+		this.addEventHandler('keydown', func);
 		return this;
 	};
 
 	$.prototype.keyup = function(func) {
-		$.addEventHandler('keyup', func);
+		this.addEventHandler('keyup', func);
 		return this;
 	};
 
 	$.prototype.keypress = function(func) {
-		$.addEventHandler('keypress', func);
+		this.addEventHandler('keypress', func);
 		return this;
 	};
 
 	$.prototype.submit = function(func) {
-		$.addEventHandler('submit', func);
+		this.addEventHandler('submit', func);
 		return this;
 	};
 
 	$.prototype.blur = function(func) {
-		$.addEventHandler('blur', func);
+		this.addEventHandler('blur', func);
 		return this;
 	};
 
 	$.prototype.select = function(func) {
-		$.addEventHandler('select', func);
+		this.addEventHandler('select', func);
 		return this;
 	};
 
 	$.prototype.change = function(func) {
-		$.addEventHandler('change', func);
+		this.addEventHandler('change', func);
 		return this;
 	};
 
 	$.prototype.focus = function(func) {
-		$.addEventHandler('focus', func);
+		this.addEventHandler('focus', func);
 		return this;
 	};
+
+	$.prototype.dragstart = function(func) {
+		this.addEventHandler('dragstart', func);
+		return this;
+	};
+
+	$.prototype.drag = function(func) {
+		this.addEventHandler('drag', func);
+		return this;
+	};
+
+	$.prototype.dragend = function(func) {
+		this.addEventHandler('dragend', func);
+		return this;
+	};
+
+
+	$.hashchange = function(func) {
+		if ($.browser.browser === 'IE' && $.browser.version < 9) {
+			if ($(document).data('hashEvent') !== null) {
+				throw new Error("IE8/7/6 only can only bind one callback.");
+			} else {
+				$(document).data('hashEvent', true);
+				var preHash = window.location.hash;
+				setInterval(function(){
+					if (prehash !== window.location.hash) {
+						func();
+						preHash = window.location.hash;
+					}
+				}, 150);
+			}
+		} else {
+			$.addEventHandler(window, 'focus', func);
+		}
+		return this;
+	};
+
 });
 'use strict';
 
@@ -1430,19 +1510,6 @@ define('selector', ['core'], function($){
 		}
 	};
 
-	$.prototype.get = function(index) {
-		return this.dom[index];
-	};
-
-	$.prototype.forEach = function(func) {
-		for (var i = 0, len = this.dom.length; i < len; i++) {
-			func.call(this.dom[i], this.dom[i], i);
-		}
-	};
-
-	$.prototype.parent = function() {
-		return $(this.dom[0].parentElement);
-	};
 });
 'use strict';
 
