@@ -811,7 +811,7 @@ define('dom.ready', ['core'], function($){
 });
 'use strict';
 
-define('event', ['core'], function($) {
+define('event', ['core', 'browser'], function($) {
 	
 	$.event = function(e) {
 		return $.event.prototype.init(e || window.event);
@@ -901,6 +901,11 @@ define('event', ['core'], function($) {
 		return this;
 	};
 
+	$.prototype.mousewheel = function(func) {
+		$.addEventHandler('mousewheel', func);
+		return this;
+	};
+
 	$.prototype.dblclick = function(func) {
 		$.addEventHandler('dblclick', func);
 		return this;
@@ -946,6 +951,25 @@ define('event', ['core'], function($) {
 		return this;
 	};
 
+	$.prototype.blur = function(func) {
+		$.addEventHandler('blur', func);
+		return this;
+	};
+
+	$.prototype.select = function(func) {
+		$.addEventHandler('select', func);
+		return this;
+	};
+
+	$.prototype.change = function(func) {
+		$.addEventHandler('change', func);
+		return this;
+	};
+
+	$.prototype.focus = function(func) {
+		$.addEventHandler('focus', func);
+		return this;
+	};
 });
 'use strict';
 
