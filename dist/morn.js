@@ -776,7 +776,7 @@ define('dom', ['core', 'selector'], function($) {
 	$.prototype.children = function(i) {
 		if (i !== undefined) {
 			if (typeof i === 'string') {
-				return $.parseSelecor(i, this.dom[0]);
+				return $.analyse($.parse(i).slice(1), this.dom[0]);
 			} else {
 				return $(this.get(i));
 			}
@@ -1150,12 +1150,7 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 		return this.states[this.states.length - 1];
 	};
 
-	/*
-	*
-	*	scan seletor string and match doms
-	*
-	*/
-	$.parseSelector = function (seletor, scope) {
+	$.parse = function (selector) {
 		var currentToken = null,
 			tokens       = [],
 			c            = '',
@@ -1263,7 +1258,15 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 			}
 		}
 
-		return analyse(tokens, scope);
+		return tokens;
+	};
+	/*
+	*
+	*	scan seletor string and match doms
+	*
+	*/
+	$.parseSelector = function (selector, scope) {
+		return analyse($.parse(selector), scope);
 	};
 
 
