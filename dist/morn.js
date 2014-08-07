@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-07 */
+/*! morn-js - v0.0.1 - 2014-08-08 */
 'use strict';
 
 var define = (function(){
@@ -206,7 +206,7 @@ define('core', function(){
 		if (selector !== undefined ) {
 			if (typeof selector === 'string') {
 				return new morn.prototype.init(morn.parseSelector(selector));
-			} else if (morn.isNode(selector)) {
+			} else if (morn.isNode(selector) || morn.isHtmlList(selector)) {
 				return new morn.prototype.init(selector);
 			} else if (selector.constructor === morn){
 				return selector;
@@ -664,19 +664,37 @@ define('dom', ['core', 'selector'], function($) {
 	};
 
 	$.prototype.append = function(children) {
-		var dom;
+		var dom,
+			i,
+			len;
 		if (this.dom.length > 0) {
 			dom = this.dom[0];
 		} else {
 			return this;
 		}
 
-		if (children.length) {
-			for (var i = children.length - 1; i >= 0; i--) {
-				dom.appendChild(children[i]);
+		if (children.constructor === NodeList) {
+			for (i = 0, len = children.length; i < len; i++) {
+				dom.appendChild(children[0]);
+			}
+			// while (children.firstChild) {
+			// 	dom.appendChild(children.firstChild);
+			// }
+		} else if (children.constructor === HTMLCollection) {
+			// while (children.firstChild) {
+			// 	dom.appendChild(children.firstChild);
+			// }
+			for (i = 0, len = children.length; i < len; i++) {
+				dom.appendChild(children[0]);
+			}
+		} else if (children.constructor === $){
+			for (i = 0, len = children.dom.length; i < len; i++) {
+				dom.appendChild(children.dom[i]);
 			}
 		} else {
-			dom.appendChild(children);
+			for (i = 0, len = children.length; i < len; i++) {
+				dom.appendChild(children[i]);
+			}
 		}
 		return this;
 	};
@@ -1517,10 +1535,10 @@ define('selector', ['core'], function($){
 	};
 
 	$.classStyle = (function() {
-		if (document.getElementsByClass) {
+		if (document.getElementsByClassName) {
 			return function(classStyle, scope) {
 				var dom = scope || document;
-				return dom.getElementsByClass(classStyle);
+				return dom.getElementsByClassName(classStyle);
 			};
 		} else if (document.querySelector) {
 			return function(classStyle, scope) {
@@ -1684,6 +1702,10 @@ define('type', ['core'], function($){
 		);
 	};
 
+	$.isHtmlList = function(o) {
+		return (o && (o.constructor === HTMLCollection || o.constructor === NodeList));
+	}
+
 });
 'use strict';
 
@@ -1821,6 +1843,95 @@ define('widget.dragger', ['core', 'dom', 'lexer'], function($) {
 		// body...
 	};
 
+});
+'use strict';
+
+define('widget.scroll', ['core', 'event', 'dom'], function($) {
+	$.widget.prototype.scroll = function(opt) {
+		var option = opt || {};
+		return this.forEach(function(ele){
+				var contentTop = 0,
+					scrollbar = $.createDom('<div class="scroll-bar"><div class="track"></div><div class="thumb"></div></div><div class="inner"></div>');
+				$(scrollbar[1]).append(ele.childNodes);
+				var wrap = $(ele).append(scrollbar),
+					inner = $.classStyle('inner', ele)[0],
+					thumb = $.classStyle('thumb', ele)[0],
+					track = $.classStyle('track', ele)[0],
+					mouseStartY,
+					_thumbTop = 0,
+					thumbTop = 0,
+					thumbHeight = 40,
+					contentHeight = parseInt(window.getComputedStyle(inner).height),
+					frameHeight = parseInt($(wrap).getComputedStyle().height),
+					trackHeight = frameHeight - thumbHeight,
+					totalHeight = contentHeight - frameHeight;
+				
+				function nil(e){
+					var event = $.event(e);
+					e.preventDefault();
+				}
+				
+				function startDrag(e) {
+					mouseStartY = e.screenY;
+					$(document.documentElement).addEventHandler('dragstart', nil);
+					$(document.documentElement).addEventHandler('selectstart', nil);
+					$(document.documentElement).addEventHandler('mousemove', drag);
+					$(document.documentElement).addEventHandler('mouseup', endDrag);
+				}
+
+				function drag(e) {
+					var change = e.screenY - mouseStartY;
+					_thumbTop = change + thumbTop;
+					if (_thumbTop > trackHeight) {
+						_thumbTop = trackHeight;
+					} else if (_thumbTop < 0){
+						_thumbTop = 0;   
+					}
+				}
+
+				function endDrag() {
+					$(document.documentElement).removeEventHandler('mousemove',drag);
+					thumbTop = _thumbTop;
+					$(document.documentElement).removeEventHandler('mouseup',endDrag);
+					$(document.documentElement).removeEventHandler('dragstart', nil);
+					$(document.documentElement).removeEventHandler('selectstart', nil);
+				}
+				
+				function scrollTo(e) {
+					thumbTop = e.layerY - thumbHeight / 2;
+					if (thumbTop < 0) {
+						thumbTop = 0;
+					} else if (thumbTop > trackHeight) {
+						thumbTop = trackHeight;
+					}
+					contentTop = -(thumbTop / trackHeight) * totalHeight;
+					thumb.style.top = thumbTop + 'px';
+					inner.style.top = contentTop + 'px';
+				}
+				
+				$(track).addEventHandler('click', scrollTo);
+				
+				$(thumb).addEventHandler('mousedown', startDrag);
+				
+				$(wrap).addEventHandler('mousewheel', function(e){
+					contentTop += -e.deltaY;
+					if (contentTop < -totalHeight) {
+						contentTop = -totalHeight;
+					} else if (contentTop > 0) {
+						contentTop = 0;
+					} else {
+						e.preventDefault();
+					}
+					inner.style.top = contentTop + 'px';
+					thumbTop = - (contentTop / totalHeight) * trackHeight;
+					thumb.style.top = thumbTop + 'px';
+				});
+				//console.log(change);
+				contentTop = -(_thumbTop / trackHeight) * totalHeight;
+				inner.style.top = contentTop.toFixed(0) + 'px';
+				thumb.style.top = _thumbTop + 'px';
+			});
+		};
 });
 'use strict';
 
