@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <script src="../dist/morn.js"></script>
+    <script>
+        morn.ready(function(){
+            console.log(morn.parse(".wrap .inner"));
+        });
+    </script>
+    <title>test for selector</title>
+</head>
+<body>
+    <ul class="wrap">
+        <li class="inner">
+            <li class="children"></li>
+        </li>
+        <li class="inner"></li>
+        <li class="inner"></li>
+        <li class="inner"></li>
+        <li class="inner"></li>
+    </ul>
+</body>
+</html>

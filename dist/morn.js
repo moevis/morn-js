@@ -211,7 +211,7 @@ define('core', function(){
 			} else if (selector.constructor === morn){
 				return selector;
 			}
-		}
+        }
 
 	};
 
@@ -386,7 +386,7 @@ define('data', ['core'], function($) {
 	$.prototype.removeData = (function() {
 		if (document.documentElement.dataset) {
 			return function(key) {
-				var i, len;
+                var i, len, d;
 				if (key !== undefined) {
 					for (i = 0, len = this.dom.length; i < len; i++) {
 						delete this.dom[i].dataset[key];
@@ -1073,8 +1073,7 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
     };
 
     Stream.prototype.putBack = function() {
-        if (this.pos === 0) {
-        } else {
+        if (this.pos !== 0) {
             this.pos--;
         }
     };
@@ -1116,11 +1115,13 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 		TAG           : 3,
 		ALL           : 4,
 		FAKE          : 5,
+        SLIBING       : 6,
+        CHILDREN      : 7,
 		UNKNOWN       : 8
 	};
 
 	var State = {
-		INSTART: 0,
+		START: 0,
 		INWHITE: 1,
 		INID:    2,
 		INCLASS: 3,
@@ -1158,7 +1159,7 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 			state        = new States(State.START),
 			save         = true,
 			_saveToken   = false,
-			stream       = new Stream(seletor);
+			stream       = new Stream(selector);
 
 		function addToken (buffer, token) {
 			tokens.push({text: buffer, type: token});
@@ -1193,8 +1194,12 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 					} else if (c === '*') {
 						saveToken(Token.ALL);
 					} else if (type.isWhite(c)) {
-						state.change(State.INWHITE);
-					} else if (c === Stream.EOL) {
+						state.push(State.INWHITE);
+                    } else if (c === '>') {
+                        saveToken(Token.CHILDREN);
+                    } else if (c === '~') {
+                        saveToken(Token.SLIBING);
+                    } else if (c === Stream.EOL) {
 						state.change(State.DONE);
 					} else if (c === ':') {
 						save = false;
@@ -1241,18 +1246,23 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 						saveToken(Token.FAKE);
 						state.pop();
 					}
-				default :
+                    break;
+				default:
+                    break;
 					//never reaches here;
 			}
 
 			if (save === true) {
 				buffer += c;
+                if (buffer.length > 100) {
+                    return tokens;
+                }
 			}
 
 			if (_saveToken) {
 				addToken(buffer, currentToken);
 				if (tokens.length > 100) {
-					return analyse(tokens);
+					return $.analyse(tokens);
 				}
 				buffer = '';
 			}
@@ -1266,31 +1276,22 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 	*
 	*/
 	$.parseSelector = function (selector, scope) {
-		return analyse($.parse(selector), scope);
+		return $.analyse($.parse(selector), scope);
 	};
 
 
-	function analyse (tokens, scope) {
-		var lastId = 0,
-			result = null,
+    $.analyse = function(tokens, scope) {
+        var tmp,
+            result = null,
 			lastResult = scope || null;
 
-		// for (var i = tokens.length - 1; i >= 0; i--) {
-		// 	if (tokens[i].type === Token.ID) {
-		// 		lastId = i;
-		// 		break;
-		// 	}
-		// }
-
-		//for (var len = tokens.length, i = lastId; i < len; i++) {
-		
 		for (var len = tokens.length, i = 0; i < len; i++) {
 			switch(tokens[i].type) {
 				case Token.WHITE:
 					break;
 
 				case Token.ID:
-					result = [$.id(tokens[i].text)];
+					result = [$.id(tokens[i].text, scope)];
 					break;
 
 				case Token.CLASS:
@@ -1304,7 +1305,7 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 							}
 						} else {
 							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-								var tmp = $.classStyle(tokens[i].text, lastResult[iter]);
+                                tmp = $.classStyle(tokens[i].text, lastResult[iter]);
 								for (var index = 0, l = tmp.length; index < l; index++) {
 									result.push(tmp[index]);
 								}
@@ -1317,9 +1318,9 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 
 				case Token.TAG:
 					if (lastResult !== null) {
-						result = [];
+                        result = [];
 						for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-							var tmp = $.tag(tokens[i].text, lastResult[iter]);
+                            tmp = $.tag(tokens[i].text, lastResult[iter]);
 							for (var index = 0, l = tmp.length; index < l; index++) {
 								result.push(tmp[index]);
 							}
@@ -1328,6 +1329,25 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 						result = $.tag(tokens[i].text);
 					}
 					break;
+
+                case Token.CHILDREN:
+                    if (lastResult !== null) {
+                        var existNode = [],
+                            node,
+                            nodeIndex,
+                            existNodeLen,
+                            slibings = [];
+                        result = [];
+                        for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+                            if (! existIn(lastResult[iter].parentElement, existNode)) {
+                                existNode.push(lastResult[iter].parentElement);
+                                slibings.concat(lastResult[iter].parentElement.childNodes);
+                            }
+                        }
+                    } else {
+                        result = [];
+                    }
+                    break;
 
 				case Token.FAKE:
 					if (lastResult !== null) {
@@ -1363,12 +1383,25 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 				default:
 			}
 
+            if (result.length === 0 && lastResult !== null) {
+                return result;
+            }
+
 			lastResult = result;
+
 		}
 
 		return result;
+	};
 
-	}
+    function existIn(node, nodelist) {
+        for (var nodeIndex = 0, existNodeLen = nodelist.length; nodeIndex < existNodeLen; nodeIndex++) {
+            if (nodelist[nodeIndex] === node) {
+                return true;
+            }
+        }
+        return false;
+    }
 });
 'use strict';
 
