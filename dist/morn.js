@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-08 */
+/*! morn-js - v0.0.1 - 2014-08-09 */
 'use strict';
 
 var define = (function(){
@@ -1108,6 +1108,12 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 		return this.seletor.indexOf(matchString, this.pos) === this.pos;
 	};
 
+	Stream.prototype.eatWhite = function() {
+		while (this.pick() === ' ') {
+			this.read();
+		}
+	};
+
 	var type = {};
 
 	type.inRange = function (num, min, max) {
@@ -1214,13 +1220,18 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 					} else if (type.isWhite(c)) {
 						state.push(State.INWHITE);
                     } else if (c === '>') {
+						save = false;
+						stream.eatWhite();
                         saveToken(Token.CHILDREN);
                     } else if (c === '~') {
+						save = false;
+						stream.eatWhite();
                         saveToken(Token.SLIBING);
                     } else if (c === Stream.EOL) {
 						state.change(State.DONE);
 					} else if (c === ':') {
 						save = false;
+						stream.eatWhite();
 						state.push(State.INFAKECLASS);
 					}
 					break;
@@ -1301,28 +1312,42 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
     $.analyse = function(tokens, scope) {
         var tmp,
             result = null,
-			lastResult = scope || null;
+			lastResult = scope || null,
+			doWithCurrent = false,
+			iter,
+			resultlen;
 
 		for (var len = tokens.length, i = 0; i < len; i++) {
 			switch(tokens[i].type) {
 				case Token.WHITE:
+					doWithCurrent = false;
 					break;
 
 				case Token.ID:
-					result = [$.id(tokens[i].text, scope)];
+					if (doWithCurrent === true) {
+						for (iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+							if (lastResult[iter].id === tokens[i].text) {
+								result = [lastResult[iter]];
+								break;
+							}
+						}
+					} else {
+						result = [$.id(tokens[i].text, scope)];
+					}
+					doWithCurrent = true;
 					break;
 
 				case Token.CLASS:
 					if (lastResult !== null) {
 						result = [];
-						if (tokens[i - 1].type !== Token.WHITE) {
-							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+						if (doWithCurrent === true) {
+							for (iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
 								if ($.hasClass(lastResult[iter], tokens[i - 1].text)) {
 									result.push(lastResult[iter]);
 								}
 							}
 						} else {
-							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+							for (iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
                                 tmp = $.classStyle(tokens[i].text, lastResult[iter]);
 								for (var index = 0, l = tmp.length; index < l; index++) {
 									result.push(tmp[index]);
@@ -1332,36 +1357,63 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 					} else {
 						result = $.classStyle(tokens[i].text);
 					}
+					doWithCurrent = true;
 					break;
 
 				case Token.TAG:
 					if (lastResult !== null) {
-                        result = [];
-						for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-                            tmp = $.tag(tokens[i].text, lastResult[iter]);
-							for (var index = 0, l = tmp.length; index < l; index++) {
-								result.push(tmp[index]);
+						result = [];
+						if (doWithCurrent === true) {
+							for (iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+								if (lastResult[iter].tagName.toLowerCase() === tokens[i].text) {
+									result.push(lastResult[iter]);
+								}
+							}
+						} else {
+							for (iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+								tmp = $.tag(tokens[i].text, lastResult[iter]);
+								for (var index = 0, l = tmp.length; index < l; index++) {
+									result.push(tmp[index]);
+								}
 							}
 						}
+
 					} else {
 						result = $.tag(tokens[i].text);
 					}
+					doWithCurrent = true;
 					break;
 
-                case Token.CHILDREN:
+                case Token.SLIBING:
                     if (lastResult !== null) {
                         var existNode = [],
                             node,
                             nodeIndex,
                             existNodeLen,
                             slibings = [];
-                        result = [];
-                        for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+
+                        for (iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
                             if (! existIn(lastResult[iter].parentElement, existNode)) {
                                 existNode.push(lastResult[iter].parentElement);
-                                slibings.concat(lastResult[iter].parentElement.childNodes);
+                                slibings = slibings.concat(Array.prototype.slice.call(lastResult[iter].parentElement.children, 0));
                             }
                         }
+                        result = slibings;
+                        doWithCurrent = true;
+                    } else {
+                        result = [];
+                    }
+                    break;
+
+                case Token.CHILDREN:
+                    if (lastResult !== null) {
+                        result = [];
+
+                        for (iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+                            result = result.concat(Array.prototype.slice.call(lastResult[iter].children, 0));
+                        }
+
+                        doWithCurrent = true;
                     } else {
                         result = [];
                     }
@@ -1374,7 +1426,7 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 						if (fake === 'odd') {
 
 							result = [];
-							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+							for (iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
 								if (iter % 2 === 0) {
 									result.push(lastResult[iter]);
 								}
@@ -1382,7 +1434,7 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 
 						} else if (fake === 'even') {
 							result = [];
-							for (var iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
+							for (iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
 								if (iter % 2 === 1) {
 									result.push(lastResult[iter]);
 								}
@@ -1394,6 +1446,7 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 						} else if (fake === 'last-child') {
 								result = [lastResult[lastResult.length - 1]];
 						}
+
 					} else {
 						result = [];
 					}
