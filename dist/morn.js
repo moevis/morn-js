@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-09 */
+/*! morn-js - v0.0.1 - 2014-08-10 */
 'use strict';
 
 var define = (function(){
@@ -1913,11 +1913,11 @@ define('widget.scroll', ['core', 'event', 'dom'], function($) {
 					mouseStartY,
 					_thumbTop = 0,
 					thumbTop = 0,
-					thumbHeight = 40,
 					contentHeight = parseInt(window.getComputedStyle(inner).height),
 					frameHeight = parseInt($(wrap).getComputedStyle().height),
-					trackHeight = frameHeight - thumbHeight,
-					totalHeight = contentHeight - frameHeight;
+					totalHeight = contentHeight - frameHeight,
+					thumbHeight = frameHeight / totalHeight * frameHeight,
+					trackHeight = frameHeight - thumbHeight;
 				
 				function nil(e){
 					var event = $.event(e);
@@ -1940,6 +1940,9 @@ define('widget.scroll', ['core', 'event', 'dom'], function($) {
 					} else if (_thumbTop < 0){
 						_thumbTop = 0;   
 					}
+					contentTop = -(_thumbTop / trackHeight) * totalHeight;
+					inner.style.top = contentTop + 'px';
+					thumb.style.top = _thumbTop + 'px';
 				}
 
 				function endDrag() {
@@ -1957,15 +1960,26 @@ define('widget.scroll', ['core', 'event', 'dom'], function($) {
 					} else if (thumbTop > trackHeight) {
 						thumbTop = trackHeight;
 					}
-					contentTop = -(thumbTop / trackHeight) * totalHeight;
-					thumb.style.top = thumbTop + 'px';
-					inner.style.top = contentTop + 'px';
+					contentTop = -(_thumbTop / frameHeight) * totalHeight;
+					inner.style.top = contentTop.toFixed(0) + 'px';
+					thumb.style.top = _thumbTop + 'px';
+				}
+
+				function resize() {
+					console.log(2);
+					contentHeight = parseInt(window.getComputedStyle(inner).height);
+					frameHeight = parseInt($(wrap).getComputedStyle().height);
+					totalHeight = contentHeight - frameHeight;
+					thumbHeight = frameHeight / totalHeight;
+					trackHeight = frameHeight - thumbHeight;
 				}
 				
 				$(track).addEventHandler('click', scrollTo);
 				
 				$(thumb).addEventHandler('mousedown', startDrag);
 				
+				$(inner).addEventHandler('resize', resize);
+
 				$(wrap).addEventHandler('mousewheel', function(e){
 					contentTop += -e.deltaY;
 					if (contentTop < -totalHeight) {
@@ -1980,6 +1994,7 @@ define('widget.scroll', ['core', 'event', 'dom'], function($) {
 					thumb.style.top = thumbTop + 'px';
 				});
 				//console.log(change);
+				thumb.style.height = thumbHeight;
 				contentTop = -(_thumbTop / trackHeight) * totalHeight;
 				inner.style.top = contentTop.toFixed(0) + 'px';
 				thumb.style.top = _thumbTop + 'px';
