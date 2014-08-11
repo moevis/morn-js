@@ -1071,6 +1071,11 @@ define('event', ['core', 'browser'], function($) {
 });
 'use strict';
 
+/**
+ * lexer module.
+ * used for parsing selector string and select node from document.
+ * relies on core, selector, dom.
+ */
 define('lexer', ['core', 'selector', 'dom'], function($) {
     /**
      * Stream Class to contain selector text.
@@ -1684,8 +1689,19 @@ define('promise', ['core'], function($) {
 });
 'use strict';
 
+/**
+ * selector module.
+ * wraps element getting api.
+ * find() relies on lexer module.
+ */
 define('selector', ['core'], function($){
-	// get element
+
+    /**
+     * select by id
+     * @param {string} id
+     * @param {node} scope
+     * @returns {HTMLElement}
+     */
 	$.id = function(id, scope) {
 		if (scope) {
 			return scope.getElementById(id);
@@ -1694,6 +1710,12 @@ define('selector', ['core'], function($){
 		}
 	};
 
+    /**
+     * select by tag name
+     * @param {string} tag
+     * @param {node} scope
+     * @returns {NodeList}
+     */
 	$.tag = function(tag, scope) {
 		if (scope) {
 			return scope.getElementsByTagName(tag);
@@ -1702,6 +1724,9 @@ define('selector', ['core'], function($){
 		}
 	};
 
+    /**
+     * select by class name.
+     */
 	$.classStyle = (function() {
 		if (document.getElementsByClassName) {
 			return function(classStyle, scope) {
@@ -1726,6 +1751,11 @@ define('selector', ['core'], function($){
 		};
 	}());
 
+    /**
+     * select nodes under the scope of current node.
+     * @param selector
+     * @returns {morn.init}
+     */
 	$.prototype.find = function(selector) {
 		if (selector) {
 			return new $.prototype.init($.parseSelector(selector), this.dom);
