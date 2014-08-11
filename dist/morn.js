@@ -1,27 +1,42 @@
 /*! morn-js - v0.0.1 - 2014-08-11 */
 'use strict';
 
+/**
+ * the first module tobe loaded.
+ * load the other module by dependencies order.
+ */
 var define = (function(){
 	var namespaces = {},
 		pending = {},
 		uid = 0;
 
+    /**
+     * load module
+     * @param {string} ns name of the module.
+     * @param {Array} dependsOn modules' name array than depends on.
+     * @param {Function} func module content.
+     * @returns {boolean} true if a module is successfully loaded.
+     * @private
+     * @example
+     * _load('lexer',['core'], func);
+     *
+     */
 	function _load(ns, dependsOn, func){
 		if (namespaces[ns] !== undefined && namespaces[ns].load === true) {
 			return true;
 		}
 		var loadNow = true;
-		dependsOn.forEach(function(e){
-			if (namespaces[e] === undefined) {
-				loadNow = false;
-			} else {
-				if (namespaces[e].load === false) {
-					if (!_load(e, namespaces[e].depends, namespaces[e].func)) {
-						loadNow = false;
-					}
-				}
-			}
-		});
+        for (var i = 0, len = dependsOn.length; i < len; i++) {
+            if (namespaces[dependsOn[i]] === undefined) {
+                loadNow = false;
+            } else {
+                if (namespaces[dependsOn[i]].load === false) {
+                    if (!_load(dependsOn[i], namespaces[dependsOn[i]].depends, namespaces[dependsOn[i]].func)) {
+                        loadNow = false;
+                    }
+                }
+            }
+        }
 		if (loadNow) {
 			var n;
 			func(morn);
@@ -37,10 +52,21 @@ var define = (function(){
 		}
 	}
 
+    /**
+     * generate unique id;
+     * @returns {number}
+     */
 	function guid() {
 		return uid++;
 	}
 
+    /**
+     * @example
+     * morn.define(itself_name, ['dependencies'], function(){}); //
+     * morn.define(['dependencies'], function(){});  // anonymous function and has dependencies
+     * morn.define(itself_name, function(){}); // no dependencies
+     * morn.define(function(){});  // no dependencies and anonymous
+     */
 	return function() {
 		if (arguments.length === 1) {
 			arguments[0](morn);
@@ -200,6 +226,11 @@ define('browser', ['core'], function ($) {
 
 var morn;
 
+/**
+ * core module.
+ * the root object is defined in this module.
+ * wrap for addEventListener and removeEventListener
+ */
 define('core', function(){
 
 	morn = function(selector, context) {
