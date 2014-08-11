@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-10 */
+/*! morn-js - v0.0.1 - 2014-08-11 */
 'use strict';
 
 var define = (function(){
@@ -1072,7 +1072,11 @@ define('event', ['core', 'browser'], function($) {
 'use strict';
 
 define('lexer', ['core', 'selector', 'dom'], function($) {
-
+    /**
+     * Stream Class to contain selector text.
+     * @param {string} text selector string
+     * @returns {object}
+     */
     function Stream(text) {
         this.number = 0;
         this.pos = 0;
@@ -1081,6 +1085,11 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 
     Stream.EOL = -1;
 
+    /**
+     * get one char in selector and move forward the position.
+     * if it is the end of selector, return Stream.EOL.
+     * @returns {string}
+     */
     Stream.prototype.read = function() {
         if (this.pos < this.seletor.length) {
             return this.seletor.charAt(this.pos++);
@@ -1090,12 +1099,20 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
         }
     };
 
+    /**
+     * set current postion backward a char.
+     */
     Stream.prototype.putBack = function() {
         if (this.pos !== 0) {
             this.pos--;
         }
     };
 
+    /**
+     * get one char in selector but the postion will not move.
+     * if it is the end of selector, return Stream.EOL.
+     * @returns {string}
+     */
     Stream.prototype.pick = function() {
 		if (this.pos < this.seletor.length) {
 			return this.seletor.charAt(this.pos);
@@ -1104,10 +1121,18 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 		}
 	};
 
+    /**
+     * test whether a string matches selector from current position.
+     * @param {string} matchString
+     * @returns {boolean}
+     */
 	Stream.prototype.match = function(matchString) {
 		return this.seletor.indexOf(matchString, this.pos) === this.pos;
 	};
 
+    /**
+     * skip white space from current position till the end or other char.
+     */
 	Stream.prototype.eatWhite = function() {
 		while (this.pick() === ' ') {
 			this.read();
@@ -1116,22 +1141,48 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 
 	var type = {};
 
+    /**
+     * test whether a char is in a ascii range.
+     * @param num
+     * @param min
+     * @param max
+     * @returns {boolean}
+     */
 	type.inRange = function (num, min, max) {
 		return (num >= min && num <= max);
 	};
 
+    /**
+     * check number
+     * @param c
+     * @returns {boolean}
+     */
 	type.isNum = function(c) {
 		return (type.inRange(c, '0', '9'));
 	};
 
+    /**
+     * check letter
+     * @param c
+     * @returns {boolean}
+     */
 	type.isAlpha = function(c) {
 		return (type.inRange(c, 'a', 'z') || type.inRange(c, 'A', 'Z'));
 	};
 
+    /**
+     * check if a char is '\t' or whitespace
+     * @param c
+     * @returns {boolean}
+     */
 	type.isWhite = function(c) {
 		return (c === '\t' || c === ' ');
 	};
 
+    /**
+     * token types
+     * @type {{WHITE: number, ID: number, CLASS: number, TAG: number, ALL: number, FAKE: number, SLIBING: number, CHILDREN: number, UNKNOWN: number}}
+     */
 	var Token = {
 		WHITE         : 0,
 		ID            : 1,
@@ -1144,6 +1195,10 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 		UNKNOWN       : 8
 	};
 
+    /**
+     * indicates current state when parsing selector.
+     * @type {{START: number, INWHITE: number, INID: number, INCLASS: number, INTAG: number, INFAKECLASS: number, DONE: number}}
+     */
 	var State = {
 		START: 0,
 		INWHITE: 1,
@@ -1154,27 +1209,55 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 		DONE:    16
 	};
 
+    /**
+     * state stack
+     * @param {State} startup
+     */
 	function States(startup) {
 		this.states = [startup];
 	}
 
+    /**
+     * push a state to the top.
+     * @param {State} state
+     */
 	States.prototype.push = function(state) {
 		this.states.push(state);
 	};
 
+    /**
+     * change the top state
+     * @param {State} state
+     */
 	States.prototype.change = function(state) {
 		this.states.pop();
 		this.states.push(state);
 	};
 
+    /**
+     * remove the top state and return it.
+     * @returns {*}
+     */
 	States.prototype.pop = function() {
 		return this.states.pop();
 	};
 
+    /**
+     * return the top of state stack.
+     * @returns {State}
+     */
 	States.prototype.top = function() {
 		return this.states[this.states.length - 1];
 	};
 
+    /**
+     * a parser to parse selector
+     * @param {string} selector
+     * @returns {object[]} tokens
+     * @example
+     * var tokens = $.parse('tag .class #id');
+     * console.log(tokens); // {{text:'tag',type:3},{text:'', type:0},{text:'class',type:2},{text:'', type:0},{text:'id',type:1}}
+     */
 	$.parse = function (selector) {
 		var currentToken = null,
 			tokens       = [],
@@ -1185,21 +1268,34 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 			_saveToken   = false,
 			stream       = new Stream(selector);
 
+        /**
+         * add token to tokens[], reset the _saveToken
+         * @param {string} buffer
+         * @param {token} token
+         */
 		function addToken (buffer, token) {
 			tokens.push({text: buffer, type: token});
 			_saveToken = false;
 		}
 
+        /**
+         * set currentToken. token will be saved at the loop circle end by addToken().
+         * @param {token} token
+         */
 		function saveToken(token) {
 			currentToken = token;
 			_saveToken = true;
 		}
 
+        /**
+         * backword position in stream.
+         */
 		function putBack(){
 			stream.putBack();
 			save = false;
 		}
 
+        // loop to get tokens array.
 		while (state.top() !== State.DONE) {
 
 			c = stream.read();
@@ -1299,16 +1395,23 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 
 		return tokens;
 	};
-	/*
-	*
-	*	scan seletor string and match doms
-	*
-	*/
+
+    /**
+     * parse selector to tokens and get doms.
+     * @param {string} selector
+     * @param {nodeList} scope
+     * @returns {morn.init}
+     */
 	$.parseSelector = function (selector, scope) {
 		return $.analyse($.parse(selector), scope);
 	};
 
-
+    /**
+     * select nodes in document.
+     * @param {tokens[]} tokens
+     * @param {nodeList} scope
+     * @returns {morn.init}
+     */
     $.analyse = function(tokens, scope) {
         var tmp,
             result = null,
@@ -1317,6 +1420,13 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 			iter,
 			resultlen;
 
+        /**
+         * when meets Token.ID, Token.CLASS, Token.TAG,
+         * if doWithCurrent == true, select nodes from lastResult,
+         * else select nodes from document in scope of lastResult.
+         * when meets Token.FAKE, Token.CHILDREN, Token.SILIBING
+         * select nodes from lastResult.
+         */
 		for (var len = tokens.length, i = 0; i < len; i++) {
 			switch(tokens[i].type) {
 				case Token.WHITE:
@@ -1459,12 +1569,17 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
             }
 
 			lastResult = result;
-
 		}
 
 		return result;
 	};
 
+    /**
+     * check whether if a node in nodeList
+     * @param {node} node
+     * @param {nodeList} nodelist
+     * @returns {boolean}
+     */
     function existIn(node, nodelist) {
         for (var nodeIndex = 0, existNodeLen = nodelist.length; nodeIndex < existNodeLen; nodeIndex++) {
             if (nodelist[nodeIndex] === node) {
