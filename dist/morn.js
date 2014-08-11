@@ -793,6 +793,10 @@ define('dom', ['core', 'selector'], function($) {
 		return this;
 	};
 
+    /**
+     * hide element
+     * @returns {morn.init}
+     */
 	$.prototype.hide = function() {
 		for (var i = 0; i < this.dom.length; i++) {
 			this.dom[i].style.display = 'none';
@@ -800,6 +804,10 @@ define('dom', ['core', 'selector'], function($) {
 		return this;
 	};
 
+    /**
+     * show element
+     * @returns {morn.init}
+     */
 	$.prototype.show = function() {
 		for (var i = 0; i < this.dom.length; i++) {
 			this.dom[i].style.display = 'block';
@@ -807,17 +815,23 @@ define('dom', ['core', 'selector'], function($) {
 		return this;
 	};
 
+    /**
+     * return next element;
+     * @returns {morn.init}
+     */
 	$.prototype.next = function() {
 		var dom = [],
-			next;
+			next,
+            len,
+            i;
 		if (document.documentElement.previousSibling !== undefined) {
-			for (var len = this.dom.length, i = 0; i < len; i++) {
+			for (len = this.dom.length, i = 0; i < len; i++) {
 				if (next = this.dom[i].nextElementSibling) {
 					dom.push(this.dom[i].nextElementSibling);
 				}
 			}
 		} else {
-			for (var len = this.dom.length, i = 0; i < len; i++) {
+			for (len = this.dom.length, i = 0; i < len; i++) {
 				next = this.dom[i].nextSibling;
 				while(next && next.nodeType !== 1) {
 					next = next.nextSibling;
@@ -832,6 +846,10 @@ define('dom', ['core', 'selector'], function($) {
 		return this;
 	};
 
+    /**
+     * return previous element
+     * @returns {morn.init}
+     */
 	$.prototype.prev = function() {
 		var dom = [],
 			prev;
@@ -856,16 +874,30 @@ define('dom', ['core', 'selector'], function($) {
 		return this;
 	};
 
+    /**
+     * remove element.
+     */
 	$.prototype.remove = function() {
 		for (var i = 0; i < this.dom.length; i++) {
 			this.dom[i].parentElement.removeChild(this.dom[i]);
 		}
 	};
 
+    /**
+     * return the number of elements
+     * @returns {Number}
+     */
 	$.prototype.count = function() {
 		return this.dom.length;
 	};
 
+    /**
+     * return element's children.
+     * if typeof i == number, return the element on the position i;
+     * if typeof i == string, parse the string name ,and select it from the children;
+     * @param {Number|string} i
+     * @returns {morn.init}
+     */
 	$.prototype.children = function(i) {
 		if (i !== undefined) {
 			if (typeof i === 'string') {
@@ -882,20 +914,38 @@ define('dom', ['core', 'selector'], function($) {
 		}
 	};
 
+    /**
+     * get element on the position index.
+     * @param {Number} index
+     * @returns {node}
+     */
 	$.prototype.get = function(index) {
 		return this.dom[index];
 	};
 
+    /**
+     * get element on the position index and returns a morn.init object.
+     * @param {Number} index
+     * @returns {morn.init}
+     */
 	$.prototype.el = function(index) {
 		return $(this.dom[index]);
 	};
 
+    /**
+     * apply function on the nodes.
+     * @param {Function} func
+     */
 	$.prototype.forEach = function(func) {
 		for (var i = 0, len = this.dom.length; i < len; i++) {
 			func.call(this.dom[i], this.dom[i], i);
 		}
 	};
 
+    /**
+     * return parent;
+     * @returns {morn.init}
+     */
 	$.prototype.parent = function() {
 		return $(this.dom[0].parentElement);
 	};
