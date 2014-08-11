@@ -450,8 +450,16 @@ define('data', ['core'], function($) {
 });
 'use strict';
 
+/**
+ * dom module.
+ * used to deal with document elements.
+ */
 define('dom', ['core', 'selector'], function($) {
 
+    /**
+     * apply a class to the nodes.
+     * @return {morn.init}
+     */
 	$.prototype.addClass = (function () {
 		if (document.documentElement.classList) {
 			return function (classStyle) {
@@ -473,6 +481,41 @@ define('dom', ['core', 'selector'], function($) {
 		}
 	}());
 
+
+    $.addClass = (function () {
+        if (document.documentElement.classList) {
+            return function (el, classStyle) {
+                if (el.length) {
+                    for (var i = el.length - 1; i >= 0; i--) {
+                        el[i].classList.add(classStyle);
+                    }
+                } else {
+                    el.classList.add(classStyle);
+                }
+            };
+        }else{
+            return function (el, classStyle) {
+                if (el.length) {
+                    for (var i = el.length - 1; i >= 0; i--) {
+                        var c = ' ' + el.className + ' ';
+                        if (c.indexOf(' ' + classStyle + ' ') == -1) {
+                            el.className += ' ' + classStyle;
+                        }
+                    }
+                } else {
+                    var c = ' ' + el.className + ' ';
+                    if (c.indexOf(' ' + classStyle + ' ') == -1) {
+                        el.className += ' ' + classStyle;
+                    }
+                }
+            };
+        }
+    }());
+
+    /**
+     * return whether a class in the node.
+     * @return {morn.init}
+     */
 	$.prototype.hasClass = (function () {
 		if (document.documentElement.classList) {
 			return function (classStyle) {
@@ -511,36 +554,10 @@ define('dom', ['core', 'selector'], function($) {
 		}
 	}());
 
-	$.addClass = (function () {
-		if (document.documentElement.classList) {
-			return function (el, classStyle) {
-				if (el.length) {
-					for (var i = el.length - 1; i >= 0; i--) {
-						el[i].classList.add(classStyle);
-					}
-				} else {
-					el.classList.add(classStyle);
-				}
-			};
-		}else{
-			return function (el, classStyle) {
-				if (el.length) {
-					for (var i = el.length - 1; i >= 0; i--) {
-						var c = ' ' + el.className + ' ';
-						if (c.indexOf(' ' + classStyle + ' ') == -1) {
-							el.className += ' ' + classStyle;
-						}
-					}
-				} else {
-					var c = ' ' + el.className + ' ';
-					if (c.indexOf(' ' + classStyle + ' ') == -1) {
-						el.className += ' ' + classStyle;
-					}
-				}
-			};
-		}
-	}());
-
+    /**
+     * remove a class in node
+     * @return {morn.init}
+     */
 	$.prototype.removeClass = (function () {
 		if (document.documentElement.classList) {
 			return function (classStyle) {
@@ -583,6 +600,13 @@ define('dom', ['core', 'selector'], function($) {
 		}
 	}());
 
+    /**
+     * return an element style.
+     * if name is specific, return the value of name in style.
+     * IE may return some value not expressed by pixel.
+     * @param {string|null}name
+     * @returns {Object|value}
+     */
 	$.prototype.getComputedStyle = function(name) {
 		if (this.dom.length > 0) {
 			if (this.dom[0].style[name] && name !== undefined) {
@@ -604,6 +628,14 @@ define('dom', ['core', 'selector'], function($) {
 		}
 	};
 
+    /**
+     * return an element style.
+     * if name is specific, return the value of name in style.
+     * IE may return some value not expressed by pixel.
+     * @param {node} elem
+     * @param {string|null}name
+     * @returns {Object|value}
+     */
 	$.getComputedStyle = function( elem, name ) {
 		if (elem.style[name] && name !== undefined) {
 			return elem.style[name];
@@ -623,6 +655,11 @@ define('dom', ['core', 'selector'], function($) {
 		}
 	};
 
+    /**
+     * get/set element's width
+     * @param {string|null} width
+     * @returns {string|morn.init}
+     */
 	$.prototype.width = function(width) {
 		if (width === undefined) {
 			var rect;
@@ -630,9 +667,19 @@ define('dom', ['core', 'selector'], function($) {
 				rect = this.dom[0].getBoundingClientRect();
 				return rect.right - rect.left;
 			}
-		}
-	}
+		} else {
+            if (this.dom.length > 0) {
+                this.dom[0].style.width = width;
+                return this;
+            }
+        }
+	};
 
+    /**
+     * get/set element's height
+     * @param {string|null} height
+     * @returns {string|morn.init}
+     */
 	$.prototype.height = function(height) {
 		if (height === undefined) {
 			var rect;
@@ -640,19 +687,31 @@ define('dom', ['core', 'selector'], function($) {
 				rect = this.dom[0].getBoundingClientRect();
 				return rect.bottom - rect.top;
 			}
-		}
-	}
+		} else {
+            if (this.dom.length > 0) {
+                this.dom[0].style.height = height;
+                return this;
+            }
+        }
+	};
 
+    /**
+     * get rect of node
+     * @returns {ClientRect}
+     */
 	$.prototype.rect = function() {
-		// if (width === undefined) {
-			var rect;
-			if (this.dom.length !== 0) {
-				rect = this.dom[0].getBoundingClientRect();
-				return rect;
-			}
-		// }
-	}
+        var rect;
+        if (this.dom.length !== 0) {
+            rect = this.dom[0].getBoundingClientRect();
+            return rect;
+        }
+	};
 
+    /**
+     * create node using string
+     * @param {string} str
+     * @returns {Array}
+     */
 	$.createDom = function(str){
 		var tmpNodes = [],
 			tmp = document.createElement('div');
@@ -663,6 +722,11 @@ define('dom', ['core', 'selector'], function($) {
 		return tmpNodes;
 	};
 
+    /**
+     * append element to this.dom
+     * @param {nodeList|HTMLCollection|morn.init} children
+     * @returns {morn.init}
+     */
 	$.prototype.append = function(children) {
 		var dom,
 			i,
@@ -677,13 +741,7 @@ define('dom', ['core', 'selector'], function($) {
 			for (i = 0, len = children.length; i < len; i++) {
 				dom.appendChild(children[0]);
 			}
-			// while (children.firstChild) {
-			// 	dom.appendChild(children.firstChild);
-			// }
 		} else if (children.constructor === HTMLCollection) {
-			// while (children.firstChild) {
-			// 	dom.appendChild(children.firstChild);
-			// }
 			for (i = 0, len = children.length; i < len; i++) {
 				dom.appendChild(children[0]);
 			}
@@ -699,22 +757,39 @@ define('dom', ['core', 'selector'], function($) {
 		return this;
 	};
 
+    /**
+     * prepend element to this.dom
+     * @param {nodeList|HTMLCollection|morn.init} children
+     * @returns {morn.init}
+     */
 	$.prototype.prepend = function(children) {
-		var dom;
+		var dom,
+            i,
+            len;
 		if (this.dom.length > 0) {
 			dom = this.dom[0];
 		} else {
 			return this;
 		}
-
-		if (children.length) {
-			for (var i = children.length - 1; i >= 0; i--) {
-				dom.insertBefore(children[i], dom.firstChild);
-			}
-		} else {
-			dom.insertBefore(children, dom.firstChild);
-		}
-
+        if (children.constructor === NodeList) {
+            for (i = 0, len = children.length; i < len; i++) {
+                dom.insertBefore(children[0], dom.firstChild);
+            }
+        } else if (children.constructor === HTMLCollection) {
+            for (i = 0, len = children.length; i < len; i++) {
+                dom.insertBefore(children[0], dom.firstChild);
+            }
+        } else if (children.constructor === $){
+            for (i = 0, len = children.dom.length; i < len; i++) {
+                dom.appendChild(children.dom[i]);
+            }
+        } else if (!children.length){
+            dom.insertBefore(children, dom.firstChild);
+        } else {
+            for (i = 0, len = children.length; i < len; i++) {
+                dom.insertBefore(children[i], dom.firstChild);
+            }
+        }
 		return this;
 	};
 
@@ -2061,7 +2136,7 @@ define('widget.scroll', ['core', 'event', 'dom'], function($) {
 					contentHeight = parseInt(window.getComputedStyle(inner).height),
 					frameHeight = parseInt($(wrap).getComputedStyle().height),
 					totalHeight = contentHeight - frameHeight,
-					thumbHeight = frameHeight / totalHeight * frameHeight,
+					thumbHeight = frameHeight * frameHeight / totalHeight ,
 					trackHeight = frameHeight - thumbHeight;
 				
 				function nil(e){
@@ -2105,25 +2180,24 @@ define('widget.scroll', ['core', 'event', 'dom'], function($) {
 					} else if (thumbTop > trackHeight) {
 						thumbTop = trackHeight;
 					}
-					contentTop = -(_thumbTop / frameHeight) * totalHeight;
+					contentTop = -(thumbTop / frameHeight) * totalHeight;
 					inner.style.top = contentTop.toFixed(0) + 'px';
-					thumb.style.top = _thumbTop + 'px';
+					thumb.style.top = thumbTop + 'px';
 				}
 
 				function resize() {
-					console.log(2);
 					contentHeight = parseInt(window.getComputedStyle(inner).height);
 					frameHeight = parseInt($(wrap).getComputedStyle().height);
 					totalHeight = contentHeight - frameHeight;
-					thumbHeight = frameHeight / totalHeight;
+					thumbHeight = frameHeight * frameHeight / totalHeight;
 					trackHeight = frameHeight - thumbHeight;
 				}
 				
 				$(track).addEventHandler('click', scrollTo);
 				
 				$(thumb).addEventHandler('mousedown', startDrag);
-				
-				$(inner).addEventHandler('resize', resize);
+
+				$(wrap).addEventHandler('resize', resize);
 
 				$(wrap).addEventHandler('mousewheel', function(e){
 					contentTop += -e.deltaY;
@@ -2132,17 +2206,20 @@ define('widget.scroll', ['core', 'event', 'dom'], function($) {
 					} else if (contentTop > 0) {
 						contentTop = 0;
 					} else {
-						e.preventDefault();
+                        $.event(e).preventDefault();
 					}
 					inner.style.top = contentTop + 'px';
 					thumbTop = - (contentTop / totalHeight) * trackHeight;
 					thumb.style.top = thumbTop + 'px';
 				});
 				//console.log(change);
-				thumb.style.height = thumbHeight;
-				contentTop = -(_thumbTop / trackHeight) * totalHeight;
-				inner.style.top = contentTop.toFixed(0) + 'px';
-				thumb.style.top = _thumbTop + 'px';
+                setTimeout(function(){
+                    resize();
+                    thumb.style.height = thumbHeight;
+                    contentTop = -(_thumbTop / trackHeight) * totalHeight;
+                    inner.style.top = contentTop.toFixed(0) + 'px';
+                    thumb.style.top = _thumbTop + 'px';
+                }, 10);
 			});
 		};
 });
