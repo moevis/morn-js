@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-11 */
+/*! morn-js - v0.0.1 - 2014-08-15 */
 'use strict';
 
 /**
@@ -1494,7 +1494,7 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 					break;
 
 				case State.INTAG:
-					if (!type.isAlpha(c) && !type.isNum(c)) {
+					if (!type.isAlpha(c) && !type.isNum(c) && c !== '-') {
 						putBack();
 						saveToken(Token.TAG);
 						state.pop();
@@ -1510,7 +1510,7 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 					break;
 
 				case State.INID:
-					if (!type.isAlpha(c) && !type.isNum(c)) {
+					if (!type.isAlpha(c) && !type.isNum(c) && c !== '-') {
 						putBack();
 						saveToken(Token.ID);
 						state.pop();
