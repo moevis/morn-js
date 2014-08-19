@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-15 */
+/*! morn-js - v0.0.1 - 2014-08-19 */
 'use strict';
 
 /**
@@ -1603,7 +1603,10 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 							}
 						}
 					} else {
-						result = [$.id(tokens[i].text, scope)];
+						result = $.id(tokens[i].text, scope);
+						if (result === null) {
+							result = [];
+						}
 					}
 					doWithCurrent = true;
 					break;
