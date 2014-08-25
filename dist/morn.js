@@ -634,7 +634,7 @@ define('dom', ['core', 'selector'], function($) {
 		}else{
 			return function (classStyle) {
 				for (var i = this.dom.length - 1; i >= 0; i--) {
-					this.dom[i].this.dom.className = this.dom.className.replace(new RegExp('\\b' + classStyle + '\\b','g'), '');
+					this.dom[i].className = this.dom.className.replace(new RegExp('\\b' + classStyle + '\\b','g'), '');
 				}
 				return this;
 			};
@@ -2043,7 +2043,7 @@ define('promise', ['core'], function($) {
      * add catch to promise.once error occurs, this function will always run.
      * @param {Function} func
      */
-	$.promise.prototype.catch = function(func) {
+	$.promise.prototype['catch'] = function(func) {
 		if (this.status === REJECTED) {
 			func.call(this, this.error);
 		} else {
