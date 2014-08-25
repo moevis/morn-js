@@ -233,7 +233,11 @@ var morn;
  */
 define('core', function(){
 
-	morn = function(selector, context) {
+	/**
+	 * constuctor
+	 * @param  {String|morn.init|HtmlNode} selector
+	 */
+	morn = function(selector) {
 		if (selector !== undefined ) {
 			if (typeof selector === 'string') {
 				return new morn.prototype.init(morn.parseSelector(selector));
@@ -281,6 +285,21 @@ define('core', function(){
 			};
 		}
 	}());
+
+	/**
+	 * alias for add event Listener
+	 */
+	morn.prototype.on = morn.prototype.addEventHandler;
+
+	/**
+	 * alias for add event Listener
+	 */
+	morn.prototype.bind = morn.prototype.addEventHandler;
+
+	/**
+	 * alias for add event Listener
+	 */
+	morn.prototype.addListener = morn.prototype.addEventHandler;
 
 	morn.addEventHandler = (function () {
 		if (window.addEventListener) {
@@ -341,6 +360,22 @@ define('core', function(){
 		}
 	}());
 
+
+	/**
+	 * alias for remove event Listener
+	 */
+	morn.prototype.off = morn.prototype.removeEventHandler;
+
+	/**
+	 * alias for remove event Listener
+	 */
+	morn.prototype.unbind = morn.prototype.removeEventHandler;
+	
+	/**
+	 * alias for remove event Listener
+	 */
+	morn.prototype.removeListener = morn.prototype.removeEventHandler;
+
 	morn.removeEventHandler = (function () {
 		if (window.removeEventListener) {
 			return function (el, ev, fn) {
@@ -362,7 +397,6 @@ define('core', function(){
 			};
 		}
 	}());
-
 });
 'use strict';
 
@@ -1002,6 +1036,10 @@ define('dom.ready', ['core'], function($){
 		documentReady = true;
 	};
 
+	/**
+	 * document ready listerner
+	 * @param  {Function} func
+	 */
 	$.ready = (function() {
 		if ($.browser.browser === 'MSIE' && $.browser.version < 9){
 			$.addEventHandler(document, 'readystatechange',function() {
@@ -1055,11 +1093,11 @@ define('event', ['core', 'browser'], function($) {
 	 * alias for add event proxy
 	 */
 	$.proxy.prototype.addEventHandler = $.proxy.prototype.on;
-	
+
 	/**
 	 * alias for add event proxy
 	 */
-	$.proxy.prototype.addListerner = $.proxy.prototype.on;
+	$.proxy.prototype.addListener = $.proxy.prototype.on;
 
 	/**
 	 * remove event listener from event
@@ -1076,6 +1114,21 @@ define('event', ['core', 'browser'], function($) {
 			};
 		}
 	};
+
+	/**
+	 * alias for remove event proxy
+	 */
+	$.proxy.prototype.removeListener = $.proxy.prototype.off;
+
+	/**
+	 * alias for remove event proxy
+	 */
+	$.proxy.prototype.unbind = $.proxy.prototype.off;
+
+	/**
+	 * alias for remove event proxy
+	 */
+	$.proxy.prototype.removeEventListener = $.proxy.prototype.off;
 
 	/**
 	 * invoke the events
@@ -1276,7 +1329,7 @@ define('event', ['core', 'browser'], function($) {
 	};
 
 	/**
-	 * hash change event listerner
+	 * hash change event Listener
 	 * @param  {Function} func event to be add
 	 */
 	$.hashchange = function(func) {
