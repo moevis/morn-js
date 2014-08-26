@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-25 */
+/*! morn-js - v0.0.1 - 2014-08-26 */
 'use strict';
 
 /**
@@ -603,14 +603,14 @@ define('dom', ['core', 'selector'], function($) {
 	$.hasClass = (function () {
 		if (document.documentElement.classList) {
 			return function (ele, classStyle) {
-				if (m$isNode(ele)) {
+				if ($.isNode(ele)) {
 					return ele.classList.contains(classStyle);
 				}
 				return false;
 			};
 		}else{
 			return function (ele, classStyle) {
-				if (m$isNode(ele)) {
+				if ($.isNode(ele)) {
 					var c = ' ' + ele.className + ' ';
 					return (c.indexOf(' ' + classStyle + ' ') !== -1);
 				}
@@ -1206,6 +1206,15 @@ define('event', ['core', 'browser'], function($) {
 		} else {
 			return -1;
 		}
+	};
+
+	$.prototype.delegate = function (event, selector, func) {
+		var tokens = $.parse(selector);
+		this.addEventHandler(event, function(e){
+			if ($.hasClass($.event(e).target(), tokens[0].text)) {
+				func.call(this);
+			}
+		});
 	};
 
 	$.prototype.click = function(func) {
