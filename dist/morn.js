@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-26 */
+/*! morn-js - v0.0.1 - 2014-08-27 */
 'use strict';
 
 /**
@@ -519,7 +519,7 @@ define('data', ['core'], function($) {
  * dom module.
  * used to deal with document elements.
  */
-define('dom', ['core', 'selector'], function($) {
+define('dom', ['core'], function($) {
 
     /**
      * apply a class to the nodes.
@@ -664,6 +664,74 @@ define('dom', ['core', 'selector'], function($) {
 			};
 		}
 	}());
+
+	$.prototype.is = function(selector){
+		var s = $.parse(selector),
+			i,
+			len,
+			currentElement = this.dom[0];
+
+		if (typeof(selector) === 'string') {
+			s = $.parse(selector);
+			for (i = s.length - 1; i >= 0; i--) {
+				switch(s[i].type) {
+					case $.Token.CLASS:
+						if (! $.hasClass(currentElement, s[i].text)) {
+							return false;
+						}
+						break;
+
+					case $.Token.TAG:
+						if (currentElement.tagName.toLowerCase() !== s[i].text) {
+							return false;
+						}
+						break;
+
+					case $.Token.WHITE:
+						var parent = currentElement,
+							flag = flag;
+						if (i !== 0) {
+							i--;
+						} else {
+							return true;
+						}
+						while (parent = parent.parentElement){
+							switch(s[i].type) {
+								case $.Token.CLASS:
+									if ($.hasClass(currentElement, s[i].text)) {
+										flag = true;
+									}
+									break;
+								case $.Token.TAG:
+									if (currentElement.tagName.toLowerCase() === s[i].text) {
+										flag = true;
+									}
+									break;
+								default:
+									break;
+							}
+							if (flag) {
+								break;
+							}
+						}
+
+						if (! parent) {
+							return false;
+						} else {
+							currentElement = parent;
+						}
+						break;
+
+					default:
+						break;
+				}
+			}
+
+			return true;
+		} else {
+			return true;
+		}
+	};
 
     /**
      * return an element style.
@@ -1014,6 +1082,7 @@ define('dom', ['core', 'selector'], function($) {
 	$.prototype.parent = function() {
 		return $(this.dom[0].parentElement);
 	};
+
 });
 'use strict';
 
@@ -1494,6 +1563,8 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
         ATTRIBUTEVALUE: 9,
 		UNKNOWN       : 10
 	};
+
+	$.Token = Token;
 
     /**
      * indicates current state when parsing selector.
