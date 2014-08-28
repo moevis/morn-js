@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-28 */
+/*! morn-js - v0.0.1 - 2014-08-29 */
 'use strict';
 
 /**
@@ -665,13 +665,17 @@ define('dom', ['core'], function($) {
 		}
 	}());
 
-	$.prototype.is = function(selector){
+	$.is = function(dom, selector){
 		var s,
 			i,
 			len,
-			currentElement = this.dom[0];
+			currentElement = dom;
 
 		if (typeof(selector) === 'string') {
+			var match = (el.matches || el.matchesSelector || el.msMatchesSelector || el.mozMatchesSelector || el.webkitMatchesSelector || el.oMatchesSelector);
+			if (match) {
+				return match.call(this.dom[0], selector);
+			}
 			s = $.parse(selector);
 		} else {
 			s = selector;
@@ -743,6 +747,18 @@ define('dom', ['core'], function($) {
 		}
 
 		return true;
+	}
+
+	$.prototype.is = function(selector){
+		if (typeof(selector) === 'string') {
+			var match = (el.matches || el.matchesSelector || el.msMatchesSelector || el.mozMatchesSelector || el.webkitMatchesSelector || el.oMatchesSelector);
+			if (match) {
+				return match.call(this.dom[0], selector);
+			} else {
+				return $.is(this.dom[0], selector);
+			}
+		}
+
 	};
 
     /**
@@ -1026,6 +1042,8 @@ define('dom', ['core'], function($) {
 		for (var i = 0; i < this.dom.length; i++) {
 			this.dom[i].parentElement.removeChild(this.dom[i]);
 		}
+		// prevent memory leaking for ie
+		this.dom.length = 0;
 	};
 
     /**
@@ -1297,7 +1315,7 @@ define('event', ['core', 'browser'], function($) {
 	$.prototype.delegate = function (event, selector, func) {
 		var tokens = $.parse(selector);
 		this.addEventHandler(event, function(e){
-			if ($($.event(e).target()).is(tokens)) {
+			if ($.is($.event(e).target(), tokens)) {
 				func.call(this);
 			}
 		});
