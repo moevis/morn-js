@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-27 */
+/*! morn-js - v0.0.1 - 2014-08-28 */
 'use strict';
 
 /**
@@ -673,6 +673,8 @@ define('dom', ['core'], function($) {
 
 		if (typeof(selector) === 'string') {
 			s = $.parse(selector);
+		} else {
+			s = selector;
 		}
 
 		for (i = s.length - 1; i >= 0; i--) {
@@ -1224,6 +1226,11 @@ define('event', ['core', 'browser'], function($) {
 			}
 		}
 	};
+
+	/**
+	 * alias for invoke event
+	 */
+	$.proxy.prototype.fire = $.proxy.prototype.trigger;
 	
 	$.event = function(e) {
 		return $.event.prototype.init(e || window.event);
@@ -1290,7 +1297,7 @@ define('event', ['core', 'browser'], function($) {
 	$.prototype.delegate = function (event, selector, func) {
 		var tokens = $.parse(selector);
 		this.addEventHandler(event, function(e){
-			if ($.hasClass($.event(e).target(), tokens[0].text)) {
+			if ($($.event(e).target()).is(tokens)) {
 				func.call(this);
 			}
 		});
