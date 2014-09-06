@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-08-29 */
+/*! morn-js - v0.0.1 - 2014-09-06 */
 'use strict';
 
 /**
@@ -1896,14 +1896,14 @@ define('lexer', ['core', 'selector', 'dom'], function($) {
 							}
 						} else {
 							for (iter = 0, resultlen = lastResult.length; iter < resultlen; iter++) {
-                                tmp = $.classStyle(tokens[i].text, lastResult[iter]);
+                                tmp = $['class'](tokens[i].text, lastResult[iter]);
 								for (var index = 0, l = tmp.length; index < l; index++) {
 									result.push(tmp[index]);
 								}
 							}
 						}
 					} else {
-						result = $.classStyle(tokens[i].text);
+						result = $['class'](tokens[i].text);
 					}
 					doWithCurrent = true;
 					break;
@@ -2227,7 +2227,7 @@ define('selector', ['core'], function($){
     /**
      * select by class name.
      */
-	$.classStyle = (function() {
+	$['class'] = (function() {
 		if (document.getElementsByClassName) {
 			return function(classStyle, scope) {
 				var dom = scope || document;
@@ -2552,9 +2552,9 @@ define('widget.scroll', ['core', 'event', 'dom'], function($) {
 					scrollbar = $.createDom('<div class="scroll-bar"><div class="track"></div><div class="thumb"></div></div><div class="inner"></div>');
 				$(scrollbar[1]).append(ele.childNodes);
 				var wrap = $(ele).append(scrollbar),
-					inner = $.classStyle('inner', ele)[0],
-					thumb = $.classStyle('thumb', ele)[0],
-					track = $.classStyle('track', ele)[0],
+					inner = $['class']('inner', ele)[0],
+					thumb = $['class']('thumb', ele)[0],
+					track = $['class']('track', ele)[0],
 					mouseStartY,
 					_thumbTop = 0,
 					thumbTop = 0,

@@ -17,7 +17,7 @@ morn('.class')
   ```js
 morn.id('id'); // get element by id;
 morn.tag('tagname'); // get elements by tag name;
-morn.classStyle('className');  // get elements by class name;
+morn.class('className');  // get elements by class name;
   ```
   or even you can use as below:
   ```js
