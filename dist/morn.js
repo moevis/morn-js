@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-09-29 */
+/*! morn-js - v0.0.1 - 2014-09-30 */
 'use strict';
 
 /**
@@ -254,6 +254,10 @@ define('core', function(){
 		if (dom.length === undefined || dom === window) {
 			this.dom = [dom];
 		} else {
+			this.length = dom.length;
+			for (var i = dom.length - 1; i >= 0; i--) {
+				this[i] = dom[i];
+			}
 			this.dom = dom;
 		}
 		return this;
@@ -665,6 +669,12 @@ define('dom', ['core'], function($) {
 		}
 	}());
 
+	/**
+	 * test if the node is in a specific set.
+	 * @param  {node}  dom
+	 * @param  {token array|selector}  selector
+	 * @return {Boolean}
+	 */
 	$.is = function(dom, selector){
 		var s,
 			i,
@@ -1113,6 +1123,13 @@ define('dom', ['core'], function($) {
 		return $(this.dom[0].parentElement);
 	};
 
+	/**
+	 * empty splice function
+	 */
+	$.prototype.splice = function() {
+		//empty function
+		//browser's duck typing will take this object as an array
+	};
 });
 'use strict';
 
@@ -2402,8 +2419,11 @@ define('type', ['core'], function($){
 
 	$.isHtmlList = function(o) {
 		return (o && (o.constructor === HTMLCollection || o.constructor === NodeList));
-	}
+	};
 
+	$.toArray = function(o) {
+		return Array.prototype.slice.call(o, 0);
+	};
 });
 'use strict';
 
