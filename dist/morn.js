@@ -1,4 +1,4 @@
-/*! morn-js - v0.0.1 - 2014-09-06 */
+/*! morn-js - v0.0.1 - 2014-09-29 */
 'use strict';
 
 /**
@@ -971,7 +971,7 @@ define('dom', ['core'], function($) {
      */
 	$.prototype.show = function() {
 		for (var i = 0; i < this.dom.length; i++) {
-			this.dom[i].style.display = 'block';
+			this.dom[i].style.display = '';
 		}
 		return this;
 	};
