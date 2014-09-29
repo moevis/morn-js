@@ -241,7 +241,7 @@ define('core', function(){
 		if (selector !== undefined ) {
 			if (typeof selector === 'string') {
 				return new morn.prototype.init(morn.parseSelector(selector));
-			} else if (morn.isNode(selector) || morn.isHtmlList(selector)) {
+			} else if (morn.isNode(selector) || morn.isHtmlList(selector) || selector.constructor === Array) {
 				return new morn.prototype.init(selector);
 			} else if (selector.constructor === morn){
 				return selector;
@@ -253,6 +253,8 @@ define('core', function(){
 	morn.prototype.init = morn.widget = function(dom) {
 		if (dom.length === undefined || dom === window) {
 			this.dom = [dom];
+			this.length = 1;
+			this[0] = dom;
 		} else {
 			this.length = dom.length;
 			for (var i = dom.length - 1; i >= 0; i--) {
@@ -908,7 +910,12 @@ define('dom', ['core'], function($) {
 			return this;
 		}
 
-		if (children.constructor === NodeList) {
+		if (typeof(children) === 'string') {
+			var _children = $($.createDom(children));
+			for (i = 0, len = _children.length; i < len; i++) {
+				dom.appendChild(_children[0]);
+			}		
+		} else if (children.constructor === NodeList) {
 			for (i = 0, len = children.length; i < len; i++) {
 				dom.appendChild(children[0]);
 			}
@@ -917,8 +924,8 @@ define('dom', ['core'], function($) {
 				dom.appendChild(children[0]);
 			}
 		} else if (children.constructor === $){
-			for (i = 0, len = children.dom.length; i < len; i++) {
-				dom.appendChild(children.dom[i]);
+			for (i = 0, len = children.length; i < len; i++) {
+				dom.appendChild(children[i]);
 			}
 		} else {
 			for (i = 0, len = children.length; i < len; i++) {
