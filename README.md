@@ -37,12 +37,13 @@ morn('tag').find('selector');
   All of them support IE6.
   With a light weight parser, realizing without regex functions.
   
-## event add and remove.
+## events adding, removing and delegating.
   Oh, these ought to be supported;
   ```js
 morn('#id').addEventHandler('click', function(e){ });
 morn('#id').removeEventHandler('click', func);
 morn.ready(function); // invoked when document is ready
+morn('#id').delegate('click', 'a', function(){})
   ```
   like jquery does:
   ```js
@@ -53,7 +54,7 @@ morn('#id').scroll(function(){});
   ```js
 morn.hashchange(function(){});
   ```
-## style change
+## style changing
   ```js
 morn('#id').addClass('classname');
 morn('#id').removeClass('classname');
